@@ -40,7 +40,7 @@
     <ClCompile Include="Content\Camera.cpp">
       <Filter>Content</Filter>
     </ClCompile>
-    <ClCompile Include="Models\Triangle.cpp">
+    <ClCompile Include="Models\Cube.cpp">
       <Filter>Models</Filter>
     </ClCompile>
   </ItemGroup>
@@ -51,15 +51,15 @@
     <ClInclude Include="Content\Camera.h">
       <Filter>Content</Filter>
     </ClInclude>
-    <ClInclude Include="Models\Triangle.h">
-      <Filter>Models</Filter>
-    </ClInclude>
     <ClInclude Include="Content\ShaderStructures.h">
       <Filter>Content</Filter>
     </ClInclude>
     <ClInclude Include="Content\temp.h" />
     <ClInclude Include="Common\DirectXHelper.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\Cube.h">
+      <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

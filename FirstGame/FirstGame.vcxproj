@@ -258,14 +258,14 @@
     <ClInclude Include="Content\ShaderStructures.h" />
     <ClInclude Include="Content\temp.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="Models\Triangle.h" />
+    <ClInclude Include="Models\Cube.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Content\Camera.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="Models\Triangle.cpp" />
+    <ClCompile Include="Models\Cube.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

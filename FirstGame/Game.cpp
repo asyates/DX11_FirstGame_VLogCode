@@ -151,29 +151,30 @@ void CGame::Update(std::array<bool, 4> wasd) {
 	//Update camera position based on wasd keypress
 	Cam.MoveCamera(wasd);
 
-	Time += 0.05f;
+	Time += 0.03f;
 }
 
 // this function renders a single frame of 3D graphics
 void CGame::Render() {
 
-	// set our new render target object as the active render target
-	devcon->OMSetRenderTargets(1, rendertarget.GetAddressOf(), zbuffer.Get()); //Output-Merger (OM)
+    // set our new render target object as the active render target
+    devcon->OMSetRenderTargets(1, rendertarget.GetAddressOf(), zbuffer.Get());
 
-	// clear the back buffer to a deep blue
-	float color[4] = { 0.4f, 0.6f, 1.0f, 1.0f };
-	devcon->ClearRenderTargetView(rendertarget.Get(), color);
+    // clear the back buffer to a deep blue
+    float color[4] = {0.1f, 0.3f, 0.6f, 1.0f};
+    devcon->ClearRenderTargetView(rendertarget.Get(), color);
 
-	// clear the depth buffer
-	devcon->ClearDepthStencilView(zbuffer.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    // clear the depth buffer
+    devcon->ClearDepthStencilView(zbuffer.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-	// set the vertex buffer
-	UINT stride = sizeof(VERTEX);
-	UINT offset = 0;
-	devcon->IASetVertexBuffers(0, 1, vertexbuffer.GetAddressOf(), &stride, &offset); //Input-Assembler (IA)
+    // set the vertex buffer and index buffer
+    UINT stride = sizeof(VERTEX);
+    UINT offset = 0;
+    devcon->IASetVertexBuffers(0, 1, vertexbuffer.GetAddressOf(), &stride, &offset);
+    devcon->IASetIndexBuffer(indexbuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
 
-	// set the primitive topology
-	devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    // set the primitive topology
+    devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// calculate the view transformation
 	XMMATRIX matView = Cam.GetCameraView();
@@ -189,24 +190,25 @@ void CGame::Render() {
 	//Apply transformations to triangles
 
 	//First Triangle
-	mod_triangles[0].SetPosition(0.0f, 0.0f, 0.0f);
-	mod_triangles[0].SetRotation(0.0f, 0.1f, 0.0f);
+	mod_cubes[0].SetPosition(0.0f, 0.0f, 0.0f);
+	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
+	mod_cubes[0].SetScale(0.2, 2.0, 0.2);
 	//Second Triangle
-	mod_triangles[1].SetPosition(0.15f, 0.2f, 0.5f);
-	mod_triangles[1].SetRotation(0.0f, Time, 0.0f);
+	mod_cubes[1].SetPosition(0.25f, 0.0f, 2.5f);
+	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
 
 	//Draw each triangle in matFinal
-	XMMATRIX matFinal[ARRAYSIZE(mod_triangles)];
-	for (int i = 0; i < ARRAYSIZE(mod_triangles); i++) {
+	XMMATRIX matFinal[ARRAYSIZE(mod_cubes)];
+	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
 
 		//calculate final matrix
-		XMMATRIX test = mod_triangles[i].GetWorldMatrix();
-		matFinal[i] = mod_triangles[i].GetWorldMatrix() * matView * matProjection;
+		XMMATRIX test = mod_cubes[i].GetWorldMatrix();
+		matFinal[i] = mod_cubes[i].GetWorldMatrix() * matView * matProjection;
 
 		// load the data into the constant buffer
 		devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &matFinal[i], 0, 0);
 		// draw 3 vertices, starting from vertex 0
-		devcon->Draw(3, 0);
+		devcon->DrawIndexed(mod_cubes[i].GetIndArraySize(), 0, 0);
 	}
 
 	// switch the back buffer and the front buffer
@@ -217,14 +219,23 @@ void CGame::Render() {
 void CGame::InitGraphics()
 {	
 
-	// create the vertex buffer for triangles
+	// create the vertex buffer for cubes
 	D3D11_BUFFER_DESC bd = { 0 };
-	bd.ByteWidth = sizeof(VERTEX) * mod_triangles[0].GetVertArraySize(); //Can use index 0 because vertices are the same for both. Might need to adjust later
+	bd.ByteWidth = sizeof(VERTEX) * mod_cubes[0].GetVertArraySize(); //Can use index 0 because vertices are the same for both. Might need to adjust later
 	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
-	D3D11_SUBRESOURCE_DATA srd = {mod_triangles[0].GetModelVertices(), 0, 0 };
+	D3D11_SUBRESOURCE_DATA srd = {mod_cubes[0].GetModelVertices(), 0, 0 };
 
 	dev->CreateBuffer(&bd, &srd, &vertexbuffer);
+
+	//create the index buffer for indices
+	D3D11_BUFFER_DESC ibd = { 0 };
+	ibd.ByteWidth = sizeof(short) * mod_cubes[0].GetIndArraySize();
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA isrd = { mod_cubes[0].GetModelIndices(), 0, 0 };
+
+	HRESULT hr = dev->CreateBuffer(&ibd, &isrd, &indexbuffer);
 }
 
 // this function initializes the GPU settings and prepares it for rendering

@@ -5,7 +5,7 @@
 using namespace DirectX;
 
 Camera::Camera() {
-	vecCamPosition = XMVectorSet(1.0f, 2.0f, -4.0f, 0);
+	vecCamPosition = XMVectorSet(1.0f, 3.0f, -5.0f, 0);
 	vecCamLookAt = XMVectorSet(0, 0, 0, 0);
 	vecCamUp = XMVectorSet(0, 1, 0, 0);
 

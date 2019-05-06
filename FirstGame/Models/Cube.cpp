@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Triangle.h"
+#include "Cube.h"
 
-Triangle::Triangle() {
+Cube::Cube() {
 
 	//setup for initial world matrix that has no translation, scaling, or rotation
 	position = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
@@ -18,15 +18,23 @@ Triangle::Triangle() {
 
 }
 
-VERTEX * Triangle::GetModelVertices() {
+VERTEX * Cube::GetModelVertices() {
 	return modelVertices;
 }
 
-UINT Triangle::GetVertArraySize() {
+short * Cube::GetModelIndices() {
+	return modelIndices;
+}
+
+UINT Cube::GetVertArraySize() {
 	return ARRAYSIZE(modelVertices);
 }
 
-void Triangle::SetPosition(float x, float y, float z) {
+UINT Cube::GetIndArraySize() {
+	return ARRAYSIZE(modelIndices);
+}
+
+void Cube::SetPosition(float x, float y, float z) {
 	
 	//update position vector (unsure if needed at this stage, but keeping for now)
 	position = XMVectorSet(x, y, z, 0.0f);
@@ -38,7 +46,7 @@ void Triangle::SetPosition(float x, float y, float z) {
 	UpdateWorldMatrix();
 }
 
-void Triangle::SetRotation(float x, float y, float z) {
+void Cube::SetRotation(float x, float y, float z) {
 	
 	//update rotation vector (unsure if needed at this stage, but keeping for now)
 	rotation = XMVectorSet(x, y, z, 0.0f);
@@ -65,7 +73,7 @@ void Triangle::SetRotation(float x, float y, float z) {
 	UpdateWorldMatrix();
 }
 
-void Triangle::SetScale(float x, float y, float z) {
+void Cube::SetScale(float x, float y, float z) {
 	
 	//update scale vector (unsure if needed at this stage, but keeping for now)
 	scale = XMVectorSet(x, y, z, 0.0f);
@@ -77,10 +85,10 @@ void Triangle::SetScale(float x, float y, float z) {
 	UpdateWorldMatrix();
 }
 
-void Triangle::UpdateWorldMatrix() {
+void Cube::UpdateWorldMatrix() {
 	matWorld = matRotate * matTranslate * matScale;
 }
 
-XMMATRIX Triangle::GetWorldMatrix() {
+XMMATRIX Cube::GetWorldMatrix() {
 	return matWorld;
 }
