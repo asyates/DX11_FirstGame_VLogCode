@@ -47,7 +47,7 @@ void App::Run() {
 		// Run ProcessEvents() to dispatch events
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-		Game.Update(wasd_keydown);
+		Game.Update(wasd_keys);
 		Game.Render();
 
 	}
@@ -80,32 +80,32 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 
 	//check which key is pressed down
 	if (args->VirtualKey == VirtualKey::W) {
-		wasd_keydown[0] = true;
+		wasd_keys[0] = true;
 	}
 	if (args->VirtualKey == VirtualKey::A) {
-		wasd_keydown[1] = true;
+		wasd_keys[1] = true;
 	}
 	if (args->VirtualKey == VirtualKey::S) {
-		wasd_keydown[2] = true;
+		wasd_keys[2] = true;
 	}
 	if (args->VirtualKey == VirtualKey::D) {
-		wasd_keydown[3] = true;
+		wasd_keys[3] = true;
 	}
 }
 
 void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {
 	//check which key is pressed down
 	if (args->VirtualKey == VirtualKey::W) {
-		wasd_keydown[0] = false;
+		wasd_keys[0] = false;
 	}
 	if (args->VirtualKey == VirtualKey::A) {
-		wasd_keydown[1] = false;
+		wasd_keys[1] = false;
 	}
 	if (args->VirtualKey == VirtualKey::S) {
-		wasd_keydown[2] = false;
+		wasd_keys[2] = false;
 	}
 	if (args->VirtualKey == VirtualKey::D) {
-		wasd_keydown[3] = false;
+		wasd_keys[3] = false;
 	}
 }
 

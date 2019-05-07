@@ -86,7 +86,7 @@ void Cube::SetScale(float x, float y, float z) {
 }
 
 void Cube::UpdateWorldMatrix() {
-	matWorld = matRotate * matTranslate * matScale;
+	matWorld = matScale * matRotate * matTranslate;
 }
 
 XMMATRIX Cube::GetWorldMatrix() {

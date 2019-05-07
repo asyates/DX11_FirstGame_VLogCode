@@ -109,6 +109,7 @@ void CGame::Initialize()
 	// create a zbuffer
 	D3D11_TEXTURE2D_DESC texd;
 	backbuffer->GetDesc(&texd); // THIS IS KEY! 
+	
 	texd.Usage = D3D11_USAGE_DEFAULT;
 	texd.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
 	texd.BindFlags = D3D11_BIND_DEPTH_STENCIL;
@@ -124,13 +125,21 @@ void CGame::Initialize()
 
 	hr = dev->CreateDepthStencilView(zbuffertexture.Get(), &dsvd, &zbuffer);
 
+	//get dpi settings to convert width and height of viewport to pixels
+	ID2D1Factory* pFactory;
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory);
+
+	// get screen dpi (dots per inch)
+	float dpiX, dpiY;
+	pFactory->GetDesktopDpi(&dpiX, &dpiY);
+
 	// set the viewport
 	D3D11_VIEWPORT viewport = { 0 };
 
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width = Window->Bounds.Width;
-	viewport.Height = Window->Bounds.Height;
+	viewport.Width = (Window->Bounds.Width)*(dpiX/96.0f);
+	viewport.Height = (Window->Bounds.Height)*(dpiY/96.0f);
 	viewport.MinDepth = 0;    // the closest an object can be on the depth buffer is 0.0
 	viewport.MaxDepth = 1;    // the farthest an object can be on the depth buffer is 1.0
 
@@ -140,17 +149,17 @@ void CGame::Initialize()
 	InitGraphics();
 	InitPipeline();
 
-	//Initialise time variable
+	//Initialise time and model_scale variable
 	Time = 0.0f;
+	modelScale = 1.0f;
 
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd) {
+void CGame::Update(std::array<bool, 4> wasd_keys) {
 
 	//Update camera position based on wasd keypress
-	Cam.MoveCamera(wasd);
-
+	Cam.MoveCamera(wasd_keys);
 	Time += 0.03f;
 }
 
@@ -190,11 +199,11 @@ void CGame::Render() {
 	//Apply transformations to triangles
 
 	//First Triangle
-	mod_cubes[0].SetPosition(0.0f, 0.0f, 0.0f);
+	mod_cubes[0].SetPosition(4.0f, 1.0f, -3.0f);
 	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
-	mod_cubes[0].SetScale(0.2, 2.0, 0.2);
+	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
 	//Second Triangle
-	mod_cubes[1].SetPosition(0.25f, 0.0f, 2.5f);
+	mod_cubes[1].SetPosition(0.25f, 1.0f, 2.5f);
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
 
 	//Draw each triangle in matFinal
@@ -211,6 +220,21 @@ void CGame::Render() {
 		devcon->DrawIndexed(mod_cubes[i].GetIndArraySize(), 0, 0);
 	}
 
+	//Draw map grid
+	devcon->IASetVertexBuffers(0, 1, grid_vbuffer.GetAddressOf(), &stride, &offset); //result vertex buffer
+	devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+	//Define world matrix
+	//XMMATRIX gmatTransform = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+	XMMATRIX gmatScale = XMMatrixScaling(6.0f, 0.0f, 6.0f);
+	XMMATRIX gmatFinal = gmatScale * matView * matProjection;
+	
+	//update constant buffer with final matrix
+	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &gmatFinal, 0, 0);
+
+	//draw grid floor
+	devcon->Draw(4, 0);
+
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
 }
@@ -218,7 +242,6 @@ void CGame::Render() {
 // this function loads and initializes all graphics data
 void CGame::InitGraphics()
 {	
-
 	// create the vertex buffer for cubes
 	D3D11_BUFFER_DESC bd = { 0 };
 	bd.ByteWidth = sizeof(VERTEX) * mod_cubes[0].GetVertArraySize(); //Can use index 0 because vertices are the same for both. Might need to adjust later
@@ -236,6 +259,27 @@ void CGame::InitGraphics()
 	D3D11_SUBRESOURCE_DATA isrd = { mod_cubes[0].GetModelIndices(), 0, 0 };
 
 	HRESULT hr = dev->CreateBuffer(&ibd, &isrd, &indexbuffer);
+
+	//Initialise Grid
+	InitGrid();
+}
+//draw map grid (ground)
+void CGame::InitGrid() {
+	VERTEX GridVertices[] = {
+		{ -1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
+		{ 1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
+		{ -1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f },
+		{ 1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f}
+	};
+
+	//create vertex buffer
+	D3D11_BUFFER_DESC bd_grid = { 0 };
+	bd_grid.ByteWidth = sizeof(VERTEX) * ARRAYSIZE(GridVertices);
+	bd_grid.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA gsrd = { GridVertices, 0, 0 };
+	HRESULT hr = dev->CreateBuffer(&bd_grid, &gsrd, &grid_vbuffer);
+
 }
 
 // this function initializes the GPU settings and prepares it for rendering
@@ -274,3 +318,4 @@ void CGame::InitPipeline()
 	dev->CreateBuffer(&bd, nullptr, &constantbuffer);
 	devcon->VSSetConstantBuffers(0, 1, constantbuffer.GetAddressOf());
 }
+

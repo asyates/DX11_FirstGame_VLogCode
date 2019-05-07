@@ -37,7 +37,7 @@ public:
 	void Closed(CoreWindow^ sender, CoreWindowEventArgs^ args);
 
 private:
-	std::array<bool, 4> wasd_keydown = { false,false,false,false }; //array for storing whether keys w,a,s,d are pressed down
+	std::array<bool, 4> wasd_keys = { false,false,false,false }; //array for storing whether keys w,a,s,d are pressed down
 
 	bool WindowClosed;    // change to true to close the window
 	CGame Game;

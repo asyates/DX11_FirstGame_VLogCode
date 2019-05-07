@@ -16,8 +16,9 @@ public:
 
 	void Initialize();
 	void InitGraphics();
+	void InitGrid();
 	void InitPipeline();
-	void Update(std::array<bool, 4> wasd);
+	void Update(std::array<bool, 4> wasd_keys);
 	void Render();
 
 private:
@@ -26,6 +27,7 @@ private:
 	ComPtr<IDXGISwapChain1> swapchain;              // the swap chain interface
 	ComPtr<ID3D11RenderTargetView> rendertarget;    // the render target interface
 	ComPtr<ID3D11Buffer> vertexbuffer;              // the vertex buffer interface
+	ComPtr<ID3D11Buffer> grid_vbuffer;				// vertex buffer interface for grid
 	ComPtr<ID3D11Buffer> indexbuffer;				// the index buffer interface
 	ComPtr<ID3D11Buffer> constantbuffer;			// constant buffer
 	ComPtr<ID3D11DepthStencilView> zbuffer;         // depth buffer
@@ -35,7 +37,9 @@ private:
 
 
 	float Time;
+	float modelScale;
 	Camera Cam;
 	Cube mod_cubes[2];
+	
 
 };
