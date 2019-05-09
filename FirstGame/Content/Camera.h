@@ -15,6 +15,6 @@ private:
 	XMVECTOR vecCamLookAt;
 	XMVECTOR vecCamUp;
 
-	float mov_rate = 0.05f; //camera movement rate
+	float mov_rate = 0.1f; //camera movement rate
 
 };

@@ -151,16 +151,28 @@ void CGame::Initialize()
 
 	//Initialise time and model_scale variable
 	Time = 0.0f;
+	scaleFact = 1.0f;
 	modelScale = 1.0f;
 
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd_keys) {
+void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 2> gh_keys) {
 
 	//Update camera position based on wasd keypress
 	Cam.MoveCamera(wasd_keys);
 	Time += 0.03f;
+
+	//TO DELETE?? (DEMO CODE ONLY)
+	if (gh_keys[0] == true) {
+		scaleFact += 0.05f;
+		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
+	}
+	if (gh_keys[1] == true) {
+		scaleFact -= 0.05f;
+		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
+	}
+
 }
 
 // this function renders a single frame of 3D graphics
@@ -176,15 +188,6 @@ void CGame::Render() {
     // clear the depth buffer
     devcon->ClearDepthStencilView(zbuffer.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
-    // set the vertex buffer and index buffer
-    UINT stride = sizeof(VERTEX);
-    UINT offset = 0;
-    devcon->IASetVertexBuffers(0, 1, vertexbuffer.GetAddressOf(), &stride, &offset);
-    devcon->IASetIndexBuffer(indexbuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
-
-    // set the primitive topology
-    devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 	// calculate the view transformation
 	XMMATRIX matView = Cam.GetCameraView();
 
@@ -196,90 +199,61 @@ void CGame::Render() {
 		1,                                                           // the near view-plane
 		200);                                                        // the far view-plane
 
-	//Apply transformations to triangles
-
-	//First Triangle
-	mod_cubes[0].SetPosition(4.0f, 1.0f, -3.0f);
-	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
-	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
-	//Second Triangle
-	mod_cubes[1].SetPosition(0.25f, 1.0f, 2.5f);
-	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
-
-	//Draw each triangle in matFinal
-	XMMATRIX matFinal[ARRAYSIZE(mod_cubes)];
-	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
-
-		//calculate final matrix
-		XMMATRIX test = mod_cubes[i].GetWorldMatrix();
-		matFinal[i] = mod_cubes[i].GetWorldMatrix() * matView * matProjection;
-
-		// load the data into the constant buffer
-		devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &matFinal[i], 0, 0);
-		// draw 3 vertices, starting from vertex 0
-		devcon->DrawIndexed(mod_cubes[i].GetIndArraySize(), 0, 0);
-	}
+	//render cubes
+	DrawCubes(matView, matProjection);
 
 	//Draw map grid
-	devcon->IASetVertexBuffers(0, 1, grid_vbuffer.GetAddressOf(), &stride, &offset); //result vertex buffer
-	devcon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	//Define world matrix
-	//XMMATRIX gmatTransform = XMMatrixTranslation(0.0f, 0.0f, 0.0f);
-	XMMATRIX gmatScale = XMMatrixScaling(6.0f, 0.0f, 6.0f);
-	XMMATRIX gmatFinal = gmatScale * matView * matProjection;
-	
-	//update constant buffer with final matrix
-	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &gmatFinal, 0, 0);
-
-	//draw grid floor
-	devcon->Draw(4, 0);
+	DrawGrid(matView, matProjection);
 
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
 }
 
+//Function for drawing cubes, to be called during game rendering.
+void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
+		
+	//Configure world matrix of first cube
+	mod_cubes[0].SetPosition(4.0f, 1.0f, -3.0f);
+	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
+	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
+	
+	//Configure work matrix of second cube
+	mod_cubes[1].SetPosition(0.25f, 1.0f, 2.5f);
+	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
+	
+	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
+	XMMATRIX matFinal[ARRAYSIZE(mod_cubes)];
+	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
+
+		//calculate final matrix
+		XMMATRIX matWorld = mod_cubes[i].GetWorldMatrix();
+		matFinal[i] = matWorld * matView * matProjection;
+		
+		//draw cube
+		mod_cubes[i].Draw(devcon, constantbuffer, matFinal[i]);
+	}
+}
+
+//draw grid floor
+void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
+	
+	gFloor.SetScale(6.0f, 0.0f, 6.0f);
+	
+	XMMATRIX matWorld = gFloor.GetWorldMatrix();
+	XMMATRIX matFinal = matWorld * matView * matProjection;
+	
+	gFloor.Draw(devcon, constantbuffer, matFinal);
+}
+
 // this function loads and initializes all graphics data
 void CGame::InitGraphics()
 {	
-	// create the vertex buffer for cubes
-	D3D11_BUFFER_DESC bd = { 0 };
-	bd.ByteWidth = sizeof(VERTEX) * mod_cubes[0].GetVertArraySize(); //Can use index 0 because vertices are the same for both. Might need to adjust later
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA srd = {mod_cubes[0].GetModelVertices(), 0, 0 };
-
-	dev->CreateBuffer(&bd, &srd, &vertexbuffer);
-
-	//create the index buffer for indices
-	D3D11_BUFFER_DESC ibd = { 0 };
-	ibd.ByteWidth = sizeof(short) * mod_cubes[0].GetIndArraySize();
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA isrd = { mod_cubes[0].GetModelIndices(), 0, 0 };
-
-	HRESULT hr = dev->CreateBuffer(&ibd, &isrd, &indexbuffer);
+	//Initialise cubes
+	mod_cubes[0].Initialize(dev);
+	mod_cubes[1].Initialize(dev);
 
 	//Initialise Grid
-	InitGrid();
-}
-//draw map grid (ground)
-void CGame::InitGrid() {
-	VERTEX GridVertices[] = {
-		{ -1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
-		{ 1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
-		{ -1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f },
-		{ 1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f}
-	};
-
-	//create vertex buffer
-	D3D11_BUFFER_DESC bd_grid = { 0 };
-	bd_grid.ByteWidth = sizeof(VERTEX) * ARRAYSIZE(GridVertices);
-	bd_grid.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-
-	D3D11_SUBRESOURCE_DATA gsrd = { GridVertices, 0, 0 };
-	HRESULT hr = dev->CreateBuffer(&bd_grid, &gsrd, &grid_vbuffer);
-
+	gFloor.Initialize(dev);
 }
 
 // this function initializes the GPU settings and prepares it for rendering

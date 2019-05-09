@@ -1,10 +1,11 @@
 #pragma once
 #include "pch.h"
+#include "Model.h"
 #include "../Content/ShaderStructures.h"
 
 using namespace DirectX;
 
-class Cube {
+class Cube : public Model { 
 
 public:
 	Cube();
@@ -12,31 +13,16 @@ public:
 	//Get vertices
 	VERTEX * GetModelVertices();
 	UINT GetVertArraySize();
+	
 	//Get indices
 	short * GetModelIndices();
 	UINT GetIndArraySize();
 
-
-	//Methods for updating position, rotation, and scale of model
-	void SetPosition(float x, float y, float z);
-	void SetRotation(float x, float y, float z);
-	void SetScale(float x, float y, float z);
-
-	XMMATRIX GetWorldMatrix();
+	// Methods to initialise and render graphics (using Model class methods)
+	void Initialize(ComPtr<ID3D11Device> dev);
+	void Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, XMMATRIX matFinal);
 
 private:
-
-	XMVECTOR position; //define x, y, and z position in world space
-	XMVECTOR rotation; //define rotation in x,y, and z axis.
-	XMVECTOR scale; //define scale in x, y, and z direction
-
-	XMMATRIX matTranslate; //translation matrix
-	XMMATRIX matRotate; // rotation matrix
-	XMMATRIX matScale; // scaling matrix
-
-	XMMATRIX matWorld; //world matrix
-
-	void UpdateWorldMatrix();
 
 	//define triangle vertices
 	VERTEX modelVertices[8] = {
@@ -65,6 +51,5 @@ private:
 		3, 7, 2,    // side 6
 		2, 7, 6,
 	};
-
 
 };

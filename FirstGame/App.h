@@ -38,6 +38,7 @@ public:
 
 private:
 	std::array<bool, 4> wasd_keys = { false,false,false,false }; //array for storing whether keys w,a,s,d are pressed down
+	std::array<bool, 2> gh_keys = { false, false };
 
 	bool WindowClosed;    // change to true to close the window
 	CGame Game;

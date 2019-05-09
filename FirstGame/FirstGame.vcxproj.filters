@@ -43,6 +43,12 @@
     <ClCompile Include="Models\Cube.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="Models\Model.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\GridFloor.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -59,6 +65,12 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Models\Cube.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\Model.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\GridFloor.h">
       <Filter>Models</Filter>
     </ClInclude>
   </ItemGroup>

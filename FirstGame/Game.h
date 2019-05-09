@@ -1,9 +1,10 @@
 #pragma once
 #include "Content/Camera.h"
+#include "Models/Model.h"
 #include "Content/ShaderStructures.h"
 #include "Common/DirectXHelper.h"
-
 #include "Models/Cube.h"
+#include "Models/GridFloor.h"
 
 using namespace Microsoft::WRL;
 using namespace Windows::UI::Core;
@@ -16,9 +17,9 @@ public:
 
 	void Initialize();
 	void InitGraphics();
-	void InitGrid();
+	//void InitGrid();
 	void InitPipeline();
-	void Update(std::array<bool, 4> wasd_keys);
+	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 2> gh_keys);
 	void Render();
 
 private:
@@ -35,11 +36,17 @@ private:
 	ComPtr<ID3D11PixelShader> pixelshader;          // the pixel shader interface
 	ComPtr<ID3D11InputLayout> inputlayout;          // the input layout interface
 
-
+private:
 	float Time;
+	float scaleFact; //for scaling model (demo purposes, possibly delete!)
 	float modelScale;
 	Camera Cam;
 	Cube mod_cubes[2];
+	GridFloor gFloor;
 	
+private:
+	void DrawCubes(XMMATRIX matView, XMMATRIX matProjection);
+	void DrawGrid(XMMATRIX matView, XMMATRIX matProjection);
+
 
 };
