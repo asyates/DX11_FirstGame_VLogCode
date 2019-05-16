@@ -256,7 +256,6 @@
     <ClInclude Include="Common\DirectXHelper.h" />
     <ClInclude Include="Content\Camera.h" />
     <ClInclude Include="Content\ShaderStructures.h" />
-    <ClInclude Include="Content\temp.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Models\Cube.h" />
     <ClInclude Include="Models\GridFloor.h" />

@@ -40,6 +40,10 @@ private:
 	float Time;
 	float scaleFact; //for scaling model (demo purposes, possibly delete!)
 	float modelScale;
+	float lookAngle; //angle camera is looking
+	float pi = 3.14f;
+
+
 	Camera Cam;
 	Cube mod_cubes[2];
 	GridFloor gFloor;
@@ -47,6 +51,8 @@ private:
 private:
 	void DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection);
 	void DrawGrid(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection);
+
+	void UpdateGameCamera(std::array<bool, 4> wasd_keys); 
 
 
 };

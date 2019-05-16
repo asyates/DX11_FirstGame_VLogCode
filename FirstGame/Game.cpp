@@ -153,6 +153,8 @@ void CGame::Initialize()
 	Time = 0.0f;
 	scaleFact = 1.0f;
 	modelScale = 1.0f;
+	lookAngle = pi/2;
+	Cam.UpdateCameraLookAt(lookAngle);
 
 }
 
@@ -160,7 +162,9 @@ void CGame::Initialize()
 void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 2> gh_keys) {
 
 	//Update camera position based on wasd keypress
-	Cam.MoveCamera(wasd_keys);
+	UpdateGameCamera(wasd_keys);
+	
+	
 	Time += 0.03f;
 
 	//TO DELETE?? (DEMO CODE ONLY)
@@ -219,12 +223,12 @@ void CGame::Render() {
 void CGame::DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection) {
 		
 	//Configure world matrix of first cube
-	mod_cubes[0].SetPosition(4.0f, 1.0f, -3.0f);
+	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f);
 	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
 	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
 	
 	//Configure work matrix of second cube
-	mod_cubes[1].SetPosition(0.25f, 1.0f, 2.5f);
+	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f);
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
 	
 	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
@@ -304,3 +308,28 @@ void CGame::InitPipeline()
 	devcon->VSSetConstantBuffers(0, 1, constantbuffer.GetAddressOf());
 }
 
+void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
+
+	if (wasd_keys[0] == true) {
+		//if W pressed, move cam position in angle direction
+		Cam.UpdateCameraPosition(lookAngle, false);
+	};
+
+	if (wasd_keys[1] == true) {
+		//if A pressed, increase angle (goes counter-clockwise)
+		lookAngle += 0.05f;
+		Cam.UpdateCameraLookAt(lookAngle);
+	};
+
+	if (wasd_keys[2] == true) {
+		//if S pressed, move cam position in the reversed angle direction (2nd argument = true)
+		Cam.UpdateCameraPosition(lookAngle, true);
+	};
+
+	if (wasd_keys[3] == true) {
+		//if D pressed, decrease angle
+		lookAngle -= 0.05f;
+		Cam.UpdateCameraLookAt(lookAngle);
+	};
+
+}

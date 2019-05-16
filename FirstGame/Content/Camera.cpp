@@ -5,34 +5,49 @@
 using namespace DirectX;
 
 Camera::Camera() {
-	vecCamPosition = XMVectorSet(2.0f, 5.0f, -10.0f, 0);
-	vecCamLookAt = XMVectorSet(0, 0, 0, 0);
-	vecCamUp = XMVectorSet(0, 1, 0, 0);
-
+	vecCamPosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0);
+	vecCamLookAt = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	vecCamUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 }
-//Move Camera, recalled that array shows [Up, Left, Down, Right] movements.
-void Camera::MoveCamera(std::array<bool, 4> wasd) {
-	if (wasd[0] == true) {
-		float new_y = XMVectorGetByIndex(vecCamLookAt, 1) + mov_rate;
-		vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_y, 1);
-	};
 
-	if (wasd[1] == true) {
-		float new_y = XMVectorGetByIndex(vecCamLookAt, 0) - mov_rate;
-		vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_y, 0);
-	};
+void Camera::UpdateCameraLookAt(float lookAngle) {
+	
+	//get new x and z coordinates of unit circle cenetered on current cam position
+	float new_x = XMVectorGetByIndex(vecCamPosition, 0) + cos(lookAngle);
+	float new_z = XMVectorGetByIndex(vecCamPosition, 2) + sin(lookAngle);
 
-	if (wasd[2] == true) {
-		float new_y = XMVectorGetByIndex(vecCamLookAt, 1) - mov_rate;
-		vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_y, 1);
-	};
+	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_x, 0);
+	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_z, 2);
+}
 
-	if (wasd[3] == true) {
-		float new_y = XMVectorGetByIndex(vecCamLookAt, 0) + mov_rate;
-		vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_y, 0);
-	};
+void Camera::UpdateCameraPosition(float lookAngle, bool reverse) {
+	
+	//define new x and z floats
+	float new_x;
+	float new_z;
+
+	//check whether we are moving forwards and backwards
+	if (reverse == false) {
+		//move cam position in positive direction we are looking
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + movRate * cos(lookAngle);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + movRate * sin(lookAngle);
+	}
+	else {
+		//move cam position in opposite direction to way we are looking
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + movRate * cos(lookAngle-3.141592f);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + movRate * sin(lookAngle-3.141592f);
+	}
+
+	//update cam position with new x and z coords
+	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_x, 0);
+	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_z, 2);
+
+	//update looking direction
+	UpdateCameraLookAt(lookAngle);
+	
 }
 
 XMMATRIX Camera::GetCameraView() {
 	return XMMatrixLookAtLH(vecCamPosition, vecCamLookAt, vecCamUp);
 }
+
