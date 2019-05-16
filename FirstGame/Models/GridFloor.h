@@ -13,15 +13,16 @@ public:
 
 	// Methods to initialise and render graphics (using Model class methods)
 	void Initialize(ComPtr<ID3D11Device> dev);
-	void Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, XMMATRIX matFinal);
+	void Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, CBUFFER cbuffer);
 
 private:
 
 	VERTEX modelVertices[4] = {
-	{ -1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
-	{ 1.0f, 0.0f, 1.0f, 0.8f, 0.4f, 0.4f },
-	{ -1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f },
-	{ 1.0f, 0.0f, -1.0f, 0.8f, 0.4f, 0.4f}
+	{ -1.0f, 0.0f, 1.0f,  0.0f, 1.0f, 0.0f },
+	{ 1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f },
+	{ -1.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f },
+	{ 1.0f, 0.0f, -1.0f,  0.0f, 1.0f, 0.0f },
+
 	};
 
 };

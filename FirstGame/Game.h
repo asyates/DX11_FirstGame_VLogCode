@@ -45,8 +45,8 @@ private:
 	GridFloor gFloor;
 	
 private:
-	void DrawCubes(XMMATRIX matView, XMMATRIX matProjection);
-	void DrawGrid(XMMATRIX matView, XMMATRIX matProjection);
+	void DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection);
+	void DrawGrid(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection);
 
 
 };

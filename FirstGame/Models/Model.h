@@ -13,8 +13,8 @@ public:
 
 	void InitGraphics(ComPtr<ID3D11Device> dev,VERTEX vertices[], UINT vertArraySize);
 	void InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertArraySize, short indices[], UINT indArraySize);
-	void DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, XMMATRIX matFinal, UINT vertArraySize);
-	void DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, XMMATRIX matFinal, UINT indArraySize);
+	void DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT vertArraySize);
+	void DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT indArraySize);
 
 	//Methods for updating position, rotation, and scale of model
 	void SetPosition(float x, float y, float z);
@@ -23,6 +23,7 @@ public:
 
 	void UpdateWorldMatrix();
 	XMMATRIX GetWorldMatrix();
+	XMMATRIX GetRotationMatrix();
 
 	XMVECTOR position; //define x, y, and z position in world space
 	XMVECTOR rotation; //define rotation in x,y, and z axis.

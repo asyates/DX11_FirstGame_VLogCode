@@ -11,10 +11,10 @@ void Cube::Initialize(ComPtr<ID3D11Device> dev) {
 	InitIndexedGraphics(dev, modelVertices, ARRAYSIZE(modelVertices), modelIndices, ARRAYSIZE(modelIndices));
 }
 
-void Cube::Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, XMMATRIX matFinal) {
+void Cube::Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, CBUFFER cbuffer) {
 
 	//Call method from model class
-	DrawIndexedGraphics(devcon, constantbuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, matFinal, ARRAYSIZE(modelIndices));
+	DrawIndexedGraphics(devcon, constantbuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, cbuffer, ARRAYSIZE(modelIndices));
 
 }
 

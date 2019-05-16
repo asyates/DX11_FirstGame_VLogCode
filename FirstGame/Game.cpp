@@ -199,18 +199,24 @@ void CGame::Render() {
 		1,                                                           // the near view-plane
 		200);                                                        // the far view-plane
 
+	// Setup constant buffer content
+	CBUFFER cbuffer;
+	cbuffer.DiffuseVector = XMVectorSet(5.0f, 1.5f, -2.0f, 0.0f);
+	cbuffer.DiffuseColor = XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f);
+	cbuffer.AmbientColor = XMVectorSet(0.2f, 0.2f, 0.2f, 1.0f);
+
 	//render cubes
-	DrawCubes(matView, matProjection);
+	DrawCubes(cbuffer, matView, matProjection);
 
 	//Draw map grid
-	DrawGrid(matView, matProjection);
+	DrawGrid(cbuffer,matView, matProjection);
 
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
 }
 
 //Function for drawing cubes, to be called during game rendering.
-void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
+void CGame::DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection) {
 		
 	//Configure world matrix of first cube
 	mod_cubes[0].SetPosition(4.0f, 1.0f, -3.0f);
@@ -222,27 +228,30 @@ void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
 	
 	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
-	XMMATRIX matFinal[ARRAYSIZE(mod_cubes)];
+
 	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
 
 		//calculate final matrix
 		XMMATRIX matWorld = mod_cubes[i].GetWorldMatrix();
-		matFinal[i] = matWorld * matView * matProjection;
+		cbuffer.Final = matWorld * matView * matProjection;
+		cbuffer.Rotation = mod_cubes[i].GetRotationMatrix();
 		
 		//draw cube
-		mod_cubes[i].Draw(devcon, constantbuffer, matFinal[i]);
+		mod_cubes[i].Draw(devcon, constantbuffer, cbuffer);
 	}
 }
 
 //draw grid floor
-void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
+void CGame::DrawGrid(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection) {
 	
 	gFloor.SetScale(6.0f, 0.0f, 6.0f);
 	
+	//calculate final matrix and pass to cbuffer (along with rotation matrix)
 	XMMATRIX matWorld = gFloor.GetWorldMatrix();
-	XMMATRIX matFinal = matWorld * matView * matProjection;
-	
-	gFloor.Draw(devcon, constantbuffer, matFinal);
+	cbuffer.Final = matWorld * matView * matProjection;
+	cbuffer.Rotation = gFloor.GetRotationMatrix();
+
+	gFloor.Draw(devcon, constantbuffer, cbuffer);
 }
 
 // this function loads and initializes all graphics data
@@ -254,6 +263,7 @@ void CGame::InitGraphics()
 
 	//Initialise Grid
 	gFloor.Initialize(dev);
+
 }
 
 // this function initializes the GPU settings and prepares it for rendering
@@ -275,7 +285,8 @@ void CGame::InitPipeline()
 	D3D11_INPUT_ELEMENT_DESC ied[] =
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		//{"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	// create the input layout
@@ -286,7 +297,7 @@ void CGame::InitPipeline()
 	D3D11_BUFFER_DESC bd = { 0 };
 
 	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = 64;
+	bd.ByteWidth = sizeof(CBUFFER);
 	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
 	dev->CreateBuffer(&bd, nullptr, &constantbuffer);

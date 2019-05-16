@@ -53,7 +53,7 @@ void Model::InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UIN
 
 }
 
-void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, XMMATRIX matFinal, UINT vertArraySize) {
+void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT vertArraySize) {
 	
 	//Set Vertex Buffers
 	UINT stride = sizeof(VERTEX);
@@ -62,13 +62,13 @@ void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffe
 	devcon->IASetPrimitiveTopology(topology);
 
 	//update constant buffer with final matrix
-	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &matFinal, 0, 0);
+	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
 
 	//draw grid floor
 	devcon->Draw(vertArraySize, 0);
 }
 
-void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, XMMATRIX matFinal, UINT indArraySize) {
+void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT indArraySize) {
 	
 	// set the vertex buffer and index buffer
 	UINT stride = sizeof(VERTEX);
@@ -82,7 +82,7 @@ void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D
 	//XMMATRIX matFinal = matWorld * matView * matProj; //calculate matrix to go from 3D to 2D
 
 	// load the data into the constant buffer
-	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &matFinal, 0, 0);
+	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
 	
 	devcon->DrawIndexed(indArraySize, 0, 0);
 }
@@ -144,4 +144,8 @@ void Model::UpdateWorldMatrix() {
 
 XMMATRIX Model::GetWorldMatrix() {
 	return matWorld;
+}
+
+XMMATRIX Model::GetRotationMatrix() {
+	return matRotate;
 }

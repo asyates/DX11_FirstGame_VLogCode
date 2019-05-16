@@ -7,10 +7,10 @@ void GridFloor::Initialize(ComPtr<ID3D11Device> dev) {
 	InitGraphics(dev, modelVertices, ARRAYSIZE(modelVertices));
 }
 
-void GridFloor::Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, XMMATRIX matFinal) {
+void GridFloor::Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, CBUFFER cbuffer) {
 
 	//Call method from model class
-	DrawGraphics(devcon, constantbuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, matFinal, ARRAYSIZE(modelVertices));
+	DrawGraphics(devcon, constantbuffer, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, cbuffer, ARRAYSIZE(modelVertices));
 
 }
 
