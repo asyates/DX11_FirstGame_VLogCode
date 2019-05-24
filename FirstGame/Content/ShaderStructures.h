@@ -6,6 +6,7 @@ struct VERTEX
 {
 	float X, Y, Z;    // vertex position
 	float NX, NY, NZ;	  // normal direction
+	float U, V;		  // texture coordinates
 };
 
 //structure to represent constant buffer

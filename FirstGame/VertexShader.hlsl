@@ -2,6 +2,7 @@ struct VOut
 {
 	float4 pos : SV_POSITION;
 	float4 color: COLOR;
+	float2 texcoord: TEXCOORD;
 };
 
 cbuffer ConstantBuffer
@@ -14,7 +15,7 @@ cbuffer ConstantBuffer
 }
 
 //Vertex Shader
-VOut main(float4 pos : POSITION, float4 normal : NORMAL)
+VOut main(float4 pos : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCOORD )
 {
 
 	//Create a VOut structure
@@ -28,6 +29,9 @@ VOut main(float4 pos : POSITION, float4 normal : NORMAL)
 	float diffusebrightness = saturate(dot(norm, lightvec));   // force to be between 0 and 1
 
 	output.color += lightcol * diffusebrightness;    // find the diffuse color and add (getting bright than ambient)
+
+	//set texture coordinates unmodified
+	output.texcoord = texcoord;
 
 	//return output values
 	return output;

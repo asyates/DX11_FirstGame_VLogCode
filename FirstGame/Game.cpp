@@ -3,6 +3,7 @@
 #include "pch.h"
 #include "Game.h"
 #include <fstream>
+#include <WICTextureLoader.h>
 
 
 // this function loads a file into an Array^
@@ -205,9 +206,13 @@ void CGame::Render() {
 
 	// Setup constant buffer content
 	CBUFFER cbuffer;
-	cbuffer.DiffuseVector = XMVectorSet(5.0f, 1.5f, -2.0f, 0.0f);
-	cbuffer.DiffuseColor = XMVectorSet(0.5f, 0.5f, 0.5f, 1.0f);
-	cbuffer.AmbientColor = XMVectorSet(0.2f, 0.2f, 0.2f, 1.0f);
+	cbuffer.DiffuseVector = XMVectorSet(5.0f, 4.5f, -2.0f, 0.0f); //light direction
+	cbuffer.DiffuseColor = XMVectorSet(1.0f, 0.5f, 0.5f, 1.0f); //light color
+	cbuffer.AmbientColor = XMVectorSet(0.2f, 0.2f, 0.2f, 1.0f); // ambient light color
+
+	//Set up shadow matrix
+	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
+	XMMATRIX S = XMMatrixShadow(shadowPlane, cbuffer.DiffuseVector);
 
 	//render cubes
 	DrawCubes(cbuffer, matView, matProjection);
@@ -231,8 +236,10 @@ void CGame::DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection)
 	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f);
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
 	
-	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
+	// tell the GPU which texture to use
+	devcon->PSSetShaderResources(0, 1, texture1.GetAddressOf());
 
+	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
 	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
 
 		//calculate final matrix
@@ -291,6 +298,7 @@ void CGame::InitPipeline()
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0},
 		//{"COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
 		{"NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0 , 24, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
 
 	// create the input layout

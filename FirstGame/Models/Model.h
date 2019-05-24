@@ -35,9 +35,12 @@ public:
 
 	XMMATRIX matWorld; //world matrix
 
+	ComPtr<ID3D11ShaderResourceView> texture; //texture to render to object
+
 private:
 
 	ComPtr<ID3D11Buffer> vertexbuffer; //vertex buffer
 	ComPtr<ID3D11Buffer> indexbuffer; //index buffer
+
 
 };

@@ -64,6 +64,9 @@ void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffe
 	//update constant buffer with final matrix
 	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
 
+	// tell the GPU which texture to use
+	devcon->PSSetShaderResources(0, 1, texture.GetAddressOf());
+
 	//draw grid floor
 	devcon->Draw(vertArraySize, 0);
 }
@@ -80,6 +83,9 @@ void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D
 	devcon->IASetPrimitiveTopology(topology);
 
 	//XMMATRIX matFinal = matWorld * matView * matProj; //calculate matrix to go from 3D to 2D
+
+	// tell the GPU which texture to use
+	devcon->PSSetShaderResources(0, 1, texture.GetAddressOf());
 
 	// load the data into the constant buffer
 	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
