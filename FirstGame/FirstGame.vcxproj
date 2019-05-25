@@ -251,6 +251,7 @@
     <Image Include="Assets\StoreLogo.png" />
     <Image Include="Assets\Wide310x150Logo.scale-200.png" />
     <Image Include="Images\avatar.png" />
+    <Image Include="Images\fence.png" />
     <Image Include="Images\ground.png" />
   </ItemGroup>
   <ItemGroup>

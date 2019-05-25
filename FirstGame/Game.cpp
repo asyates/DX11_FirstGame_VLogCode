@@ -155,15 +155,15 @@ void CGame::Initialize()
 	scaleFact = 1.0f;
 	modelScale = 1.0f;
 	lookAngle = pi/2;
-	Cam.UpdateCameraLookAt(lookAngle);
+	Cam.UpdateCameraLookAtXZ(lookAngle);
 
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 2> gh_keys) {
+void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys) {
 
 	//Update camera position based on wasd keypress
-	UpdateGameCamera(wasd_keys);
+	UpdateGameCamera(wasd_keys, direction_keys);
 	
 	
 	Time += 0.03f;
@@ -187,7 +187,7 @@ void CGame::Render() {
     devcon->OMSetRenderTargets(1, rendertarget.GetAddressOf(), zbuffer.Get());
 
     // clear the back buffer to a deep blue
-    float color[4] = {0.1f, 0.3f, 0.6f, 1.0f};
+    float color[4] = {0.2f, 0.6f, 1.0f, 1.0f};
     devcon->ClearRenderTargetView(rendertarget.Get(), color);
 
     // clear the depth buffer
@@ -204,28 +204,33 @@ void CGame::Render() {
 		1,                                                           // the near view-plane
 		200);                                                        // the far view-plane
 
-	// Setup constant buffer content
-	CBUFFER cbuffer;
-	cbuffer.DiffuseVector = XMVectorSet(5.0f, 4.5f, -2.0f, 0.0f); //light direction
-	cbuffer.DiffuseColor = XMVectorSet(1.0f, 0.5f, 0.5f, 1.0f); //light color
-	cbuffer.AmbientColor = XMVectorSet(0.2f, 0.2f, 0.2f, 1.0f); // ambient light color
+	// Setup constant buffer content to be updated per frame
+	cbPerFrame.DiffuseVector = XMVectorSet(-1.0f, -1.0f, 0.0f, 0.0f); //light direction
+	cbPerFrame.DiffuseColor = XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f); //light color
+	cbPerFrame.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 16.0f); // Specular light power
+	cbPerFrame.SpecColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // Specular light colour
+	cbPerFrame.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
+	cbPerFrame.EyePos = Cam.GetCameraPosition();
+
+	// load the data into the constant buffer
+	devcon->UpdateSubresource(m_cbufferPerFrame.Get(), 0, 0, &cbPerFrame, 0, 0);
 
 	//Set up shadow matrix
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
-	XMMATRIX S = XMMatrixShadow(shadowPlane, cbuffer.DiffuseVector);
+	XMMATRIX S = XMMatrixShadow(shadowPlane, cbPerFrame.DiffuseVector);
 
 	//render cubes
-	DrawCubes(cbuffer, matView, matProjection);
+	DrawCubes(matView, matProjection);
 
 	//Draw map grid
-	DrawGrid(cbuffer,matView, matProjection);
+	DrawGrid(matView, matProjection);
 
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
 }
 
 //Function for drawing cubes, to be called during game rendering.
-void CGame::DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection) {
+void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
 		
 	//Configure world matrix of first cube
 	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f);
@@ -244,36 +249,41 @@ void CGame::DrawCubes(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection)
 
 		//calculate final matrix
 		XMMATRIX matWorld = mod_cubes[i].GetWorldMatrix();
-		cbuffer.Final = matWorld * matView * matProjection;
-		cbuffer.Rotation = mod_cubes[i].GetRotationMatrix();
+		cbPerObject.matFinal = matWorld * matView * matProjection;
+		cbPerObject.matWorld = matWorld;
+		cbPerObject.matRotate = mod_cubes[i].GetRotationMatrix();
 		
 		//draw cube
-		mod_cubes[i].Draw(devcon, constantbuffer, cbuffer);
+		mod_cubes[i].Draw(devcon, m_cbufferPerObj, cbPerObject);
 	}
 }
 
 //draw grid floor
-void CGame::DrawGrid(CBUFFER cbuffer, XMMATRIX matView, XMMATRIX matProjection) {
+void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 	
 	gFloor.SetScale(6.0f, 0.0f, 6.0f);
 	
 	//calculate final matrix and pass to cbuffer (along with rotation matrix)
+	
 	XMMATRIX matWorld = gFloor.GetWorldMatrix();
-	cbuffer.Final = matWorld * matView * matProjection;
-	cbuffer.Rotation = gFloor.GetRotationMatrix();
+	cbPerObject.matFinal = matWorld * matView * matProjection;
+	cbPerObject.matWorld = matWorld;
+	cbPerObject.matRotate = gFloor.GetRotationMatrix();
 
-	gFloor.Draw(devcon, constantbuffer, cbuffer);
+	gFloor.Draw(devcon, m_cbufferPerObj, cbPerObject);
 }
 
 // this function loads and initializes all graphics data
 void CGame::InitGraphics()
 {	
 	//Initialise cubes
+	mod_cubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
 	mod_cubes[0].Initialize(dev);
 	mod_cubes[1].Initialize(dev);
 
 	//Initialise Grid
 	gFloor.Initialize(dev);
+
 
 }
 
@@ -305,18 +315,31 @@ void CGame::InitPipeline()
 	dev->CreateInputLayout(ied, ARRAYSIZE(ied), VSFile->Data, VSFile->Length, &inputlayout);
 	devcon->IASetInputLayout(inputlayout.Get());
 
-	//create constant buffer
-	D3D11_BUFFER_DESC bd = { 0 };
+	//create matrix constant buffer
+	D3D11_BUFFER_DESC mbd = { 0 };
 
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.ByteWidth = sizeof(CBUFFER);
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	mbd.Usage = D3D11_USAGE_DEFAULT;
+	mbd.ByteWidth = sizeof(cbPerObject);
+	mbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 
-	dev->CreateBuffer(&bd, nullptr, &constantbuffer);
-	devcon->VSSetConstantBuffers(0, 1, constantbuffer.GetAddressOf());
+	dev->CreateBuffer(&mbd, nullptr, &m_cbufferPerObj);
+
+	devcon->VSSetConstantBuffers(0, 1, m_cbufferPerObj.GetAddressOf());
+	
+	//create light constant buffer
+	D3D11_BUFFER_DESC lbd = { 0 };
+
+	lbd.Usage = D3D11_USAGE_DEFAULT;
+	lbd.ByteWidth = sizeof(cbPerFrame);
+	lbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	dev->CreateBuffer(&lbd, nullptr, &m_cbufferPerFrame);
+
+	devcon->VSSetConstantBuffers(1, 1, m_cbufferPerFrame.GetAddressOf());
+
 }
 
-void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
+void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys) {
 
 	if (wasd_keys[0] == true) {
 		//if W pressed, move cam position in angle direction
@@ -326,7 +349,7 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
 	if (wasd_keys[1] == true) {
 		//if A pressed, increase angle (goes counter-clockwise)
 		lookAngle += 0.05f;
-		Cam.UpdateCameraLookAt(lookAngle);
+		Cam.UpdateCameraLookAtXZ(lookAngle);
 	};
 
 	if (wasd_keys[2] == true) {
@@ -337,7 +360,17 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
 	if (wasd_keys[3] == true) {
 		//if D pressed, decrease angle
 		lookAngle -= 0.05f;
-		Cam.UpdateCameraLookAt(lookAngle);
+		Cam.UpdateCameraLookAtXZ(lookAngle);
+	};
+
+	if (direction_keys[1] == true) {
+		//if Up pressed, increase y coordinate of look direction
+		Cam.UpdateCameraLookAtY(true);
+	};
+
+	if (direction_keys[3] == true) {
+		//if Up pressed, increase y coordinate of look direction
+		Cam.UpdateCameraLookAtY(false);
 	};
 
 }

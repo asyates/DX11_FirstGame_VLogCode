@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Model.h"
+#include <WICTextureLoader.h>
 
 Model::Model() {
 
@@ -29,6 +30,9 @@ void Model::InitGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertA
 	D3D11_SUBRESOURCE_DATA srd = { vertices, 0, 0 };
 
 	dev->CreateBuffer(&bd, &srd, &vertexbuffer);
+
+	//Load texture using DirectXTK method
+	HRESULT hr = CreateWICTextureFromFile(dev.Get(), nullptr, texfilename, nullptr, &texture, 0);
 }
 //Initialise model that has indices defined
 void Model::InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertArraySize, short indices[], UINT indArraySize) {
@@ -51,9 +55,12 @@ void Model::InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UIN
 
 	hr = dev->CreateBuffer(&ibd, &isrd, &indexbuffer);
 
+	//Load texture using DirectXTK method
+	hr = CreateWICTextureFromFile(dev.Get(), nullptr, texfilename, nullptr, &texture, 0);
+
 }
 
-void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT vertArraySize) {
+void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT vertArraySize) {
 	
 	//Set Vertex Buffers
 	UINT stride = sizeof(VERTEX);
@@ -62,7 +69,7 @@ void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffe
 	devcon->IASetPrimitiveTopology(topology);
 
 	//update constant buffer with final matrix
-	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
+	devcon->UpdateSubresource(m_cbufferPerObject.Get(), 0, 0, &cbPerObject, 0, 0);
 
 	// tell the GPU which texture to use
 	devcon->PSSetShaderResources(0, 1, texture.GetAddressOf());
@@ -71,7 +78,7 @@ void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffe
 	devcon->Draw(vertArraySize, 0);
 }
 
-void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT indArraySize) {
+void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize) {
 	
 	// set the vertex buffer and index buffer
 	UINT stride = sizeof(VERTEX);
@@ -88,9 +95,13 @@ void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D
 	devcon->PSSetShaderResources(0, 1, texture.GetAddressOf());
 
 	// load the data into the constant buffer
-	devcon->UpdateSubresource(constantbuffer.Get(), 0, 0, &cbuffer, 0, 0);
-	
+	devcon->UpdateSubresource(m_cbufferPerObject.Get(), 0, 0, &cbPerObject, 0, 0);
+
 	devcon->DrawIndexed(indArraySize, 0, 0);
+}
+
+void Model::SetTextureFile(const wchar_t* filename) {
+	texfilename = filename;
 }
 
 void Model::SetPosition(float x, float y, float z) {

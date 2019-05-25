@@ -47,7 +47,7 @@ void App::Run() {
 		// Run ProcessEvents() to dispatch events
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-		Game.Update(wasd_keys,gh_keys);
+		Game.Update(wasd_keys, direction_keys, gh_keys);
 		Game.Render();
 
 	}
@@ -79,6 +79,8 @@ void App::Closed(CoreWindow^ sender, CoreWindowEventArgs^ args) {
 void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 
 	//check which key is pressed down
+	
+	//WASD key downs
 	if (args->VirtualKey == VirtualKey::W) {
 		wasd_keys[0] = true;
 	}
@@ -91,6 +93,7 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 	if (args->VirtualKey == VirtualKey::D) {
 		wasd_keys[3] = true;
 	}
+	
 	//G and H key down
 	if (args->VirtualKey == VirtualKey::G) {
 		gh_keys[0] = true;
@@ -98,6 +101,16 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 	if (args->VirtualKey == VirtualKey::H) {
 		gh_keys[1] = true;
 	}
+
+	//up, down keys
+	if (args->VirtualKey == VirtualKey::Up) {
+		direction_keys[1] = true;
+	}
+	if (args->VirtualKey == VirtualKey::Down) {
+		direction_keys[3] = true;
+	}
+
+
 }
 
 void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {
@@ -121,6 +134,14 @@ void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {
 	}
 	if (args->VirtualKey == VirtualKey::H) {
 		gh_keys[1] = false;
+	}
+
+	//up, down keys
+	if (args->VirtualKey == VirtualKey::Up) {
+		direction_keys[1] = false;
+	}
+	if (args->VirtualKey == VirtualKey::Down) {
+		direction_keys[3] = false;
 	}
 }
 

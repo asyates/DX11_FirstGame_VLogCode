@@ -9,7 +9,9 @@ public:
 	Camera();
 	//void MoveCamera(std::array<bool, 4> wasd);
 	XMMATRIX GetCameraView();
-	void UpdateCameraLookAt(float lookAngle);
+	XMVECTOR GetCameraPosition();
+	void UpdateCameraLookAtXZ(float lookAngle);
+	void UpdateCameraLookAtY(bool up);
 	void UpdateCameraPosition(float lookAngle, bool reverse);
 
 private:
@@ -17,6 +19,6 @@ private:
 	XMVECTOR vecCamLookAt;
 	XMVECTOR vecCamUp;
 
-	float movRate = 0.05f; //camera position movement rate
-
+	float movRate = 0.1f; //camera position movement rate
+	float yaxisRate = 0.02f; //rate camera look at vector changes in y direction
 };

@@ -13,8 +13,13 @@ public:
 
 	void InitGraphics(ComPtr<ID3D11Device> dev,VERTEX vertices[], UINT vertArraySize);
 	void InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertArraySize, short indices[], UINT indArraySize);
-	void DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT vertArraySize);
-	void DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> constantbuffer, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFER cbuffer, UINT indArraySize);
+	void DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT vertArraySize);
+	void DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize);
+
+	//Set the texture to be used for model
+		//filename for texture
+	const wchar_t* texfilename;
+	void SetTextureFile(const wchar_t* filename);
 
 	//Methods for updating position, rotation, and scale of model
 	void SetPosition(float x, float y, float z);
@@ -41,6 +46,5 @@ private:
 
 	ComPtr<ID3D11Buffer> vertexbuffer; //vertex buffer
 	ComPtr<ID3D11Buffer> indexbuffer; //index buffer
-
 
 };

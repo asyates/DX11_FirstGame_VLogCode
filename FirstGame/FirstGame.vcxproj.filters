@@ -86,6 +86,9 @@
     <Image Include="Images\ground.png">
       <Filter>Images</Filter>
     </Image>
+    <Image Include="Images\fence.png">
+      <Filter>Images</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />

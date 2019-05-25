@@ -10,11 +10,18 @@ struct VERTEX
 };
 
 //structure to represent constant buffer
-struct CBUFFER
+struct CBUFFERPEROBJECT
 {
-	XMMATRIX Final;
-	XMMATRIX Rotation; //for rotating normals, ensuring correct lighting.
+	XMMATRIX matFinal;
+	XMMATRIX matWorld; 
+	XMMATRIX matRotate; //for rotating normals
+};
+
+struct CBUFFERPERFRAME {
 	XMVECTOR DiffuseVector;
 	XMVECTOR DiffuseColor;
+	XMVECTOR SpecPower;
+	XMVECTOR SpecColor;
 	XMVECTOR AmbientColor;
+	XMVECTOR EyePos; //for specular lighting
 };
