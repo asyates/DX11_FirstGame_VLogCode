@@ -210,8 +210,8 @@ void CGame::Render() {
 
 	//Set material properties per Object (all the same for now)
 	cbPerObject.gMaterial.DiffuseColor = XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f); //light color
-	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 16.0f); // Specular light power
-	cbPerObject.gMaterial.SpecColor = XMVectorSet(0.01f, 0.01f, 0.01f, 1.0f); // Specular light colour
+	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // Specular light power
+	cbPerObject.gMaterial.SpecColor = XMVectorSet(0.5f, 0.5f, 0.5f, 0.5f); // Specular light colour
 	cbPerObject.gMaterial.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
 
 	// load the data into the constant buffer
