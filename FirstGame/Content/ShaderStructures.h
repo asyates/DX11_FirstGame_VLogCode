@@ -9,19 +9,28 @@ struct VERTEX
 	float U, V;		  // texture coordinates
 };
 
+//material structure
+struct MATERIAL
+{
+	MATERIAL() { ZeroMemory(this, sizeof(this)); }
+
+	XMVECTOR DiffuseColor;
+	XMVECTOR AmbientColor;
+	XMVECTOR SpecPower; // w = SpecPower
+	XMVECTOR SpecColor;
+
+};
+
 //structure to represent constant buffer
 struct CBUFFERPEROBJECT
 {
 	XMMATRIX matFinal;
 	XMMATRIX matWorld; 
 	XMMATRIX matRotate; //for rotating normals
+	MATERIAL gMaterial;
 };
 
 struct CBUFFERPERFRAME {
 	XMVECTOR DiffuseVector;
-	XMVECTOR DiffuseColor;
-	XMVECTOR SpecPower;
-	XMVECTOR SpecColor;
-	XMVECTOR AmbientColor;
 	XMVECTOR EyePos; //for specular lighting
 };

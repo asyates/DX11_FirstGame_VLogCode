@@ -206,11 +206,13 @@ void CGame::Render() {
 
 	// Setup constant buffer content to be updated per frame
 	cbPerFrame.DiffuseVector = XMVectorSet(-1.0f, -1.0f, 0.0f, 0.0f); //light direction
-	cbPerFrame.DiffuseColor = XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f); //light color
-	cbPerFrame.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 16.0f); // Specular light power
-	cbPerFrame.SpecColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // Specular light colour
-	cbPerFrame.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
 	cbPerFrame.EyePos = Cam.GetCameraPosition();
+
+	//Set material properties per Object (all the same for now)
+	cbPerObject.gMaterial.DiffuseColor = XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f); //light color
+	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 16.0f); // Specular light power
+	cbPerObject.gMaterial.SpecColor = XMVectorSet(0.01f, 0.01f, 0.01f, 1.0f); // Specular light colour
+	cbPerObject.gMaterial.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
 
 	// load the data into the constant buffer
 	devcon->UpdateSubresource(m_cbufferPerFrame.Get(), 0, 0, &cbPerFrame, 0, 0);
