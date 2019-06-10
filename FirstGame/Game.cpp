@@ -209,10 +209,10 @@ void CGame::Render() {
 	cbPerFrame.EyePos = Cam.GetCameraPosition();
 
 	//Set material properties per Object (all the same for now)
-	cbPerObject.gMaterial.DiffuseColor = XMVectorSet(2.0f, 2.0f, 2.0f, 1.0f); //light color
-	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f); // Specular light power
-	cbPerObject.gMaterial.SpecColor = XMVectorSet(0.5f, 0.5f, 0.5f, 0.5f); // Specular light colour
-	cbPerObject.gMaterial.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
+	cbPerObject.gMaterial.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
+	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 4.0f); // Specular light power
+	cbPerObject.gMaterial.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); // Specular light colour
+	cbPerObject.gMaterial.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 0.0f); // ambient light color
 
 	// load the data into the constant buffer
 	devcon->UpdateSubresource(m_cbufferPerFrame.Get(), 0, 0, &cbPerFrame, 0, 0);
@@ -236,7 +236,7 @@ void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
 		
 	//Configure world matrix of first cube
 	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f);
-	mod_cubes[0].SetRotation(0.0f, 0.1f, 0.0f);
+	mod_cubes[0].SetRotation(0.0f, 0.0f, 0.0f);
 	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
 	
 	//Configure work matrix of second cube
