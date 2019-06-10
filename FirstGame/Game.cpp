@@ -149,6 +149,7 @@ void CGame::Initialize()
 	// initialize graphics and the pipeline
 	InitGraphics();
 	InitPipeline();
+	InitStates();
 
 	//Initialise time and model_scale variable
 	Time = 0.0f;
@@ -208,54 +209,71 @@ void CGame::Render() {
 	cbPerFrame.DiffuseVector = XMVectorSet(-1.0f, -1.0f, 0.0f, 0.0f); //light direction
 	cbPerFrame.EyePos = Cam.GetCameraPosition();
 
-	//Set material properties per Object (all the same for now)
-	cbPerObject.gMaterial.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
-	cbPerObject.gMaterial.SpecPower = XMVectorSet(0.0f, 0.0f, 0.0f, 4.0f); // Specular light power
-	cbPerObject.gMaterial.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); // Specular light colour
-	cbPerObject.gMaterial.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 0.0f); // ambient light color
-
 	// load the data into the constant buffer
 	devcon->UpdateSubresource(m_cbufferPerFrame.Get(), 0, 0, &cbPerFrame, 0, 0);
 
 	//Set up shadow matrix
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
-	XMMATRIX S = XMMatrixShadow(shadowPlane, cbPerFrame.DiffuseVector);
+	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
+	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.0001f, 0.0f);
 
-	//render cubes
-	DrawCubes(matView, matProjection);
+	// set the blend state
+	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
 
 	//Draw map grid
-	DrawGrid(matView, matProjection);
+	DrawGrid(matView, matProjection); //Might need to change order of shadow render at later stage.
+
+	//render cubes
+	DrawCubes(matView, matProjection, S, shadowOffsetY);
 
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
 }
 
 //Function for drawing cubes, to be called during game rendering.
-void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection) {
-		
+void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffsetY) {
+
 	//Configure world matrix of first cube
 	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f);
 	mod_cubes[0].SetRotation(0.0f, 0.0f, 0.0f);
 	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
-	
+
 	//Configure work matrix of second cube
 	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f);
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
-	
+
 	// tell the GPU which texture to use
 	devcon->PSSetShaderResources(0, 1, texture1.GetAddressOf());
+
+	//Set material properties per Object (all the same for now)
+	mCubeMat.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
+	mCubeMat.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
+	mCubeMat.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 4.0f); // Specular light colour
+
+	mShadowMat.DiffuseColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+	mShadowMat.AmbientColor = { 0.0f, 0.0f, 0.0f, 1.0f };
+	mShadowMat.SpecColor = { 0.0f, 0.0f, 0.0f, 8.0f };
 
 	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
 	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
 
-		//calculate final matrix
-		XMMATRIX matWorld = mod_cubes[i].GetWorldMatrix();
-		cbPerObject.matFinal = matWorld * matView * matProjection;
-		cbPerObject.matWorld = matWorld;
+		//Set material
+		cbPerObject.gMaterial = mCubeMat;
+
+		//calculate final matrix for object
+		XMMATRIX matWorldObj = mod_cubes[i].GetWorldMatrix();
+		cbPerObject.matFinal = matWorldObj * matView * matProjection;
+		cbPerObject.matWorld = matWorldObj;
 		cbPerObject.matRotate = mod_cubes[i].GetRotationMatrix();
 		
 		//draw cube
+		mod_cubes[i].Draw(devcon, m_cbufferPerObj, cbPerObject);
+
+		//DRAW CUBE SHADOWS
+		cbPerObject.gMaterial = mShadowMat;
+		XMMATRIX matWorldShadow = matWorldObj *matShadow * shadowOffsetY;
+		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
+
 		mod_cubes[i].Draw(devcon, m_cbufferPerObj, cbPerObject);
 	}
 }
@@ -265,12 +283,18 @@ void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 	
 	gFloor.SetScale(6.0f, 0.0f, 6.0f);
 	
+	//Set material properties per Object
+	mGridMat.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
+	mGridMat.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 8.0f); // Specular light colour
+	mGridMat.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
+
+
 	//calculate final matrix and pass to cbuffer (along with rotation matrix)
-	
 	XMMATRIX matWorld = gFloor.GetWorldMatrix();
 	cbPerObject.matFinal = matWorld * matView * matProjection;
 	cbPerObject.matWorld = matWorld;
 	cbPerObject.matRotate = gFloor.GetRotationMatrix();
+	cbPerObject.gMaterial = mGridMat;
 
 	gFloor.Draw(devcon, m_cbufferPerObj, cbPerObject);
 }
@@ -286,7 +310,23 @@ void CGame::InitGraphics()
 	//Initialise Grid
 	gFloor.Initialize(dev);
 
+}
 
+void CGame::InitStates()
+{
+	D3D11_BLEND_DESC bd;
+	bd.RenderTarget[0].BlendEnable = TRUE;    // turn on color blending
+	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;    // use addition in the blend equation
+	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;         // use source's alpha
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;    // use inverse source alpha
+	bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	bd.IndependentBlendEnable = FALSE;    // only use RenderTarget[0]
+	bd.AlphaToCoverageEnable = FALSE;    // enable alpha-to-coverage
+
+	dev->CreateBlendState(&bd, &blendstate);
 }
 
 // this function initializes the GPU settings and prepares it for rendering

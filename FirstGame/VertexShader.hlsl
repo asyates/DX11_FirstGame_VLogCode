@@ -1,16 +1,14 @@
 struct VOut 
 {
 	float4 pos : SV_POSITION;
-	float4 color: COLOR;
+	float4 color: COLOR0;
 	float2 texcoord: TEXCOORD0;
-	float4 lightViewPos: TEXCOORD1;
-	float4 lightPos: TEXCOORD2;
+	float4 diffuseColor : COLOR1;
 };
 
 struct Material {
-	float4 lightcol;      // the diffuse light's color
+	float4 diffusecol;      // the diffuse light's color
 	float4 ambientcol;    // the ambient light's color
-	float4 specPower;	  // specular light power
 	float4 specColor;     // specular light color
 };
 
@@ -48,10 +46,11 @@ VOut main(float4 pos : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCO
 	float diffuseFactor = dot(norm, lightDir);
 	float diffusebrightness = saturate(diffuseFactor);   // force to be between 0 and 1
 
-	output.color += gMaterial.lightcol * diffusebrightness;    // find the diffuse color and add (getting bright than ambient)
+	output.color += gMaterial.diffusecol * diffusebrightness;    // find the diffuse color and add (getting bright than ambient)
 	
 	//Specular lighting
 	//if surface in line of sight of the light
+	[flatten]
 	if (diffuseFactor > 0.0f) {
 		
 		float4 r = reflect(-lightDir, norm);
@@ -62,12 +61,13 @@ VOut main(float4 pos : POSITION, float4 normal : NORMAL, float2 texcoord : TEXCO
 		//float test2 = max(test1, 0.0f);
 		//float test3 = pow(test2, gMaterial.specPower.w);
 
-		float specFactor = pow(max(dot(viewDirection, r), 0.0f), gMaterial.specPower.w);
+		float specFactor = pow(max(dot(viewDirection, r), 0.0f), gMaterial.specColor.w);
 		
 		output.color += gMaterial.specColor * specFactor; // add specular lighting
 	}
 	
 	output.texcoord = texcoord; //set texture coordinates unmodified
+	output.diffuseColor = gMaterial.diffusecol; // set diffuse light color (containing alpha value at w)
 
 	//return output values
 	return output;

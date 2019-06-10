@@ -17,7 +17,7 @@ public:
 
 	void Initialize();
 	void InitGraphics();
-	//void InitGrid();
+	void InitStates();
 	void InitPipeline();
 	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys);
 	void Render();
@@ -30,18 +30,14 @@ private:
 	ComPtr<ID3D11Buffer> vertexbuffer;              // the vertex buffer interface
 	ComPtr<ID3D11Buffer> grid_vbuffer;				// vertex buffer interface for grid
 	ComPtr<ID3D11Buffer> indexbuffer;				// the index buffer interface
-
 	ComPtr<ID3D11Buffer> m_cbufferPerObj;			// constant buffer to be updated for each object render
 	ComPtr<ID3D11Buffer> m_cbufferPerFrame;			// constant buffer to be updated for each frame.
-	
-	ComPtr<ID3D11DepthStencilView> zbuffer;         // depth buffer
+	ComPtr<ID3D11DepthStencilView> zbuffer;         // depth buffer interface
 	ComPtr<ID3D11VertexShader> vertexshader;        // the vertex shader interface
 	ComPtr<ID3D11PixelShader> pixelshader;          // the pixel shader interface
 	ComPtr<ID3D11InputLayout> inputlayout;          // the input layout interface
-	
 	ComPtr<ID3D11ShaderResourceView> texture1;		//avatar texture
-
-
+	ComPtr<ID3D11BlendState> blendstate;            // the blend state interface
 
 private:
 	float Time;
@@ -54,13 +50,19 @@ private:
 	Camera Cam;
 	Cube mod_cubes[2];
 	GridFloor gFloor;
+
+	//define object materials
+	MATERIAL mCubeMat;
+	MATERIAL mGridMat;
+	MATERIAL mShadowMat;
 	
 	//Constant buffer structures
 	CBUFFERPERFRAME cbPerFrame;
 	CBUFFERPEROBJECT cbPerObject;
 
+
 private:
-	void DrawCubes(XMMATRIX matView, XMMATRIX matProjection);
+	void DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffset);
 	void DrawGrid(XMMATRIX matView, XMMATRIX matProjection);
 
 	void UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys);

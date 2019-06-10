@@ -16,8 +16,7 @@ struct MATERIAL
 
 	XMVECTOR DiffuseColor;
 	XMVECTOR AmbientColor;
-	XMVECTOR SpecPower; // w = SpecPower
-	XMVECTOR SpecColor;
+	XMVECTOR SpecColor; // w = specPower
 
 };
 
