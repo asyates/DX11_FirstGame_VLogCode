@@ -21,8 +21,9 @@ void Camera::UpdateCameraLookAtXZ(float lookAngle) {
 	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_z, 2);
 }
 
+
 //adjust camera look at vector in Y plane, taking boolean value to indicate if moving up or down.
-void Camera::UpdateCameraLookAtY(bool up) {
+void Camera::TiltCameraY(bool up) {
 
 	//calculate new y coordinate
 	float new_y;
@@ -63,6 +64,16 @@ void Camera::UpdateCameraPosition(float lookAngle, bool reverse) {
 	//update looking direction
 	UpdateCameraLookAtXZ(lookAngle);
 	
+}
+
+// Move Y coordinate of camera position by the amount 'adjustment' (float)
+void Camera::AdjustCameraPositionY(float adjustment) {
+	
+	float new_yPos = XMVectorGetByIndex(vecCamPosition, 1) + adjustment;
+	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_yPos, 1);
+	
+	float new_yLook = XMVectorGetByIndex(vecCamLookAt, 1) + adjustment;
+	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_yLook, 1);
 }
 
 XMMATRIX Camera::GetCameraView() {

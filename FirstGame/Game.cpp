@@ -161,11 +161,10 @@ void CGame::Initialize()
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys) {
+void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress) {
 
 	//Update camera position based on wasd keypress
 	UpdateGameCamera(wasd_keys, direction_keys);
-	
 	
 	Time += 0.03f;
 
@@ -177,6 +176,25 @@ void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_
 	if (gh_keys[1] == true) {
 		scaleFact -= 0.05f;
 		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
+	}
+
+
+	//if space has been pressed, and player not already jumping, set playing jumping to true.
+	if ((spacePress == true) && (playerJumping == false)) {
+		playerJumping = true;
+	}
+
+	//if player is jumping
+	if (playerJumping == true) {
+
+		//adjust 
+		Cam.AdjustCameraPositionY(currJumpVelocity);
+		currJumpVelocity = currJumpVelocity - gravity;
+
+		if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
+			playerJumping = false;
+			currJumpVelocity = initJumpVelocity;
+		}
 	}
 
 }
@@ -407,12 +425,12 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 
 	if (direction_keys[1] == true) {
 		//if Up pressed, increase y coordinate of look direction
-		Cam.UpdateCameraLookAtY(true);
+		Cam.TiltCameraY(true);
 	};
 
 	if (direction_keys[3] == true) {
 		//if Up pressed, increase y coordinate of look direction
-		Cam.UpdateCameraLookAtY(false);
+		Cam.TiltCameraY(false);
 	};
 
 }

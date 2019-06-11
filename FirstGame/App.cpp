@@ -47,7 +47,7 @@ void App::Run() {
 		// Run ProcessEvents() to dispatch events
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-		Game.Update(wasd_keys, direction_keys, gh_keys);
+		Game.Update(wasd_keys, direction_keys, gh_keys, spacePress);
 		Game.Render();
 
 	}
@@ -110,6 +110,11 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 		direction_keys[3] = true;
 	}
 
+	//space key
+	if (args->VirtualKey == VirtualKey::Space) {
+		spacePress = true;
+	}
+
 
 }
 
@@ -143,10 +148,11 @@ void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {
 	if (args->VirtualKey == VirtualKey::Down) {
 		direction_keys[3] = false;
 	}
+
+	if (args->VirtualKey == VirtualKey::Space) {
+		spacePress = false;
+	}
 }
-
-
-
 
 [MTAThread]    // define main() as a multi-threaded-apartment function
 

@@ -19,7 +19,7 @@ public:
 	void InitGraphics();
 	void InitStates();
 	void InitPipeline();
-	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys);
+	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress);
 	void Render();
 
 private:
@@ -45,7 +45,10 @@ private:
 	float modelScale;
 	float lookAngle; //angle camera is looking
 	float pi = 3.14f;
-
+	float initJumpVelocity = 0.15f; //initial jump velocity
+	float currJumpVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
+	float gravity = 0.005f;			//gravity acting to reduce jump velocity
+	bool playerJumping = false;
 
 	Camera Cam;
 	Cube mod_cubes[2];
