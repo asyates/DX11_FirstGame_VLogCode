@@ -20,7 +20,8 @@ public:
 
 	// Methods to initialise and render graphics (using Model class methods)
 	void Initialize(ComPtr<ID3D11Device> dev);
-	void Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, CBUFFERPEROBJECT cbPerObject);
+	void DrawObject(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, CBUFFERPEROBJECT cbPerObject);
+	void DrawShadow(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, CBUFFERPEROBJECT cbPerObject);
 
 private:
 
@@ -74,4 +75,6 @@ private:
 		22, 21, 23,
 	};
 
+	MATERIAL mCubeMaterial;
+	MATERIAL mShadowMaterial;
 };

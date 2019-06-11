@@ -36,7 +36,7 @@ private:
 	ComPtr<ID3D11VertexShader> vertexshader;        // the vertex shader interface
 	ComPtr<ID3D11PixelShader> pixelshader;          // the pixel shader interface
 	ComPtr<ID3D11InputLayout> inputlayout;          // the input layout interface
-	ComPtr<ID3D11ShaderResourceView> texture1;		//avatar texture
+	ComPtr<ID3D11ShaderResourceView> texture1;		// avatar texture
 	ComPtr<ID3D11BlendState> blendstate;            // the blend state interface
 
 private:
@@ -55,9 +55,7 @@ private:
 	GridFloor gFloor;
 
 	//define object materials
-	MATERIAL mCubeMat;
 	MATERIAL mGridMat;
-	MATERIAL mShadowMat;
 	
 	//Constant buffer structures
 	CBUFFERPERFRAME cbPerFrame;

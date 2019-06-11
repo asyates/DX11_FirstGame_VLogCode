@@ -27,4 +27,6 @@ private:
 
 	};
 
+	MATERIAL mGridMaterial;
+
 };

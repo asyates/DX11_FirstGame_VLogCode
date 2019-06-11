@@ -178,7 +178,6 @@ void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_
 		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
 	}
 
-
 	//if space has been pressed, and player not already jumping, set playing jumping to true.
 	if ((spacePress == true) && (playerJumping == false)) {
 		playerJumping = true;
@@ -251,68 +250,34 @@ void CGame::Render() {
 //Function for drawing cubes, to be called during game rendering.
 void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffsetY) {
 
-	//Configure world matrix of first cube
-	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f);
-	mod_cubes[0].SetRotation(0.0f, 0.0f, 0.0f);
-	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f);
-
-	//Configure work matrix of second cube
-	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f);
+	//Update rotation matrix with Time value (set in Update function)
 	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
-
-	// tell the GPU which texture to use
-	devcon->PSSetShaderResources(0, 1, texture1.GetAddressOf());
-
-	//Set material properties per Object (all the same for now)
-	mCubeMat.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
-	mCubeMat.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
-	mCubeMat.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 4.0f); // Specular light colour
-
-	mShadowMat.DiffuseColor = { 0.0f, 0.0f, 0.0f, 0.5f };
-	mShadowMat.AmbientColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-	mShadowMat.SpecColor = { 0.0f, 0.0f, 0.0f, 8.0f };
 
 	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
 	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
 
-		//Set material
-		cbPerObject.gMaterial = mCubeMat;
-
-		//calculate final matrix for object
-		XMMATRIX matWorldObj = mod_cubes[i].GetWorldMatrix();
-		cbPerObject.matFinal = matWorldObj * matView * matProjection;
-		cbPerObject.matWorld = matWorldObj;
-		cbPerObject.matRotate = mod_cubes[i].GetRotationMatrix();
+		//calculate final transformation matrix for object
+		cbPerObject.matFinal = mod_cubes[i].GetWorldMatrix() * matView * matProjection;
 		
 		//draw cube
-		mod_cubes[i].Draw(devcon, m_cbufferPerObj, cbPerObject);
-
-		//DRAW CUBE SHADOWS
-		cbPerObject.gMaterial = mShadowMat;
-		XMMATRIX matWorldShadow = matWorldObj *matShadow * shadowOffsetY;
+		mod_cubes[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
+		
+		//Calculate transformation matrix to tranform vertex onto shadow plane
+		XMMATRIX matWorldShadow = mod_cubes[i].GetWorldMatrix() *matShadow * shadowOffsetY;
+		
+		//Assign shadow transformation matrix to constant buffer
 		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
 
-		mod_cubes[i].Draw(devcon, m_cbufferPerObj, cbPerObject);
+		//Draw Shadow
+		mod_cubes[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
 	}
 }
 
 //draw grid floor
 void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
-	
-	gFloor.SetScale(6.0f, 0.0f, 6.0f);
-	
-	//Set material properties per Object
-	mGridMat.DiffuseColor = XMVectorSet(1.0f, 1.0f, 1.0f, 0.0f); //light color
-	mGridMat.SpecColor = XMVectorSet(1.0f, 1.0f, 1.0f, 8.0f); // Specular light colour
-	mGridMat.AmbientColor = XMVectorSet(0.4f, 0.4f, 0.4f, 1.0f); // ambient light color
-
-
-	//calculate final matrix and pass to cbuffer (along with rotation matrix)
-	XMMATRIX matWorld = gFloor.GetWorldMatrix();
-	cbPerObject.matFinal = matWorld * matView * matProjection;
-	cbPerObject.matWorld = matWorld;
-	cbPerObject.matRotate = gFloor.GetRotationMatrix();
-	cbPerObject.gMaterial = mGridMat;
+		
+	//calculate final matrix and pass to cbuffer (Note: bug in visual studio currently presents performing this operation within gFloor object)
+	cbPerObject.matFinal = gFloor.GetWorldMatrix() * matView * matProjection;
 
 	gFloor.Draw(devcon, m_cbufferPerObj, cbPerObject);
 }
@@ -323,10 +288,15 @@ void CGame::InitGraphics()
 	//Initialise cubes
 	mod_cubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
 	mod_cubes[0].Initialize(dev);
+	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f); //set initial position
+	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f); //set initial scale
+
 	mod_cubes[1].Initialize(dev);
+	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f); //set initial position
 
 	//Initialise Grid
 	gFloor.Initialize(dev);
+	gFloor.SetScale(6.0f, 0.0f, 6.0f);
 
 }
 
