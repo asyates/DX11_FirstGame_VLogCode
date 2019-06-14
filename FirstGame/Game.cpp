@@ -163,7 +163,24 @@ void CGame::Initialize()
 // this function performs updates to the state of the game
 void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress) {
 
-	//Update camera position based on wasd keypress
+	//if space has been pressed, and player not already jumping, set playing jumping to true.
+	if ((spacePress == true) && (playerJumping == false)) {
+		playerJumping = true;
+		currFallVelocity = initJumpVelocity;
+
+		//if w or s keys pressed when player starts jump, set corresponding values in ws_key bool array to true.
+		if (wasd_keys[0] == true) {
+			ws_jump[0] = true;
+		}
+		else if (wasd_keys[2] == true) {
+			ws_jump[1] = true;
+		}
+		else {
+			stationary_jump = true;
+		}
+	}
+
+	//Update camera position based on wasd keypress and jump
 	UpdateGameCamera(wasd_keys, direction_keys);
 	
 	Time += 0.03f;
@@ -171,29 +188,12 @@ void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_
 	//TO DELETE?? (DEMO CODE ONLY)
 	if (gh_keys[0] == true) {
 		scaleFact += 0.05f;
-		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
+		modCubes[1].SetScale(scaleFact, scaleFact, scaleFact);
 	}
+
 	if (gh_keys[1] == true) {
 		scaleFact -= 0.05f;
-		mod_cubes[1].SetScale(scaleFact, scaleFact, scaleFact);
-	}
-
-	//if space has been pressed, and player not already jumping, set playing jumping to true.
-	if ((spacePress == true) && (playerJumping == false)) {
-		playerJumping = true;
-	}
-
-	//if player is jumping
-	if (playerJumping == true) {
-
-		//adjust 
-		Cam.AdjustCameraPositionY(currJumpVelocity);
-		currJumpVelocity = currJumpVelocity - gravity;
-
-		if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
-			playerJumping = false;
-			currJumpVelocity = initJumpVelocity;
-		}
+		modCubes[1].SetScale(scaleFact, scaleFact, scaleFact);
 	}
 
 }
@@ -219,7 +219,7 @@ void CGame::Render() {
 	XMMATRIX matProjection = XMMatrixPerspectiveFovLH(
 		XMConvertToRadians(45),                                      // the field of view
 		(FLOAT)Window->Bounds.Width / (FLOAT)Window->Bounds.Height,  // aspect ratio
-		1,                                                           // the near view-plane
+		0.05f,                                                           // the near view-plane
 		200);                                                        // the far view-plane
 
 	// Setup constant buffer content to be updated per frame
@@ -232,7 +232,7 @@ void CGame::Render() {
 	//Set up shadow matrix
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
 	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
-	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.0001f, 0.0f);
+	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
 
 	// set the blend state
 	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
@@ -251,25 +251,25 @@ void CGame::Render() {
 void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffsetY) {
 
 	//Update rotation matrix with Time value (set in Update function)
-	mod_cubes[1].SetRotation(0.0f, Time, 0.0f);
+	modCubes[1].SetRotation(0.0f, Time, 0.0f);
 
 	//Run for loop to produce the final matrix for all cubes in mod_cubes array before drawing them.
-	for (int i = 0; i < ARRAYSIZE(mod_cubes); i++) {
+	for (int i = 0; i < ARRAYSIZE(modCubes); i++) {
 
 		//calculate final transformation matrix for object
-		cbPerObject.matFinal = mod_cubes[i].GetWorldMatrix() * matView * matProjection;
+		cbPerObject.matFinal = modCubes[i].GetWorldMatrix() * matView * matProjection;
 		
 		//draw cube
-		mod_cubes[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
+		modCubes[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
 		
 		//Calculate transformation matrix to tranform vertex onto shadow plane
-		XMMATRIX matWorldShadow = mod_cubes[i].GetWorldMatrix() *matShadow * shadowOffsetY;
+		XMMATRIX matWorldShadow = modCubes[i].GetWorldMatrix() *matShadow * shadowOffsetY;
 		
 		//Assign shadow transformation matrix to constant buffer
 		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
 
 		//Draw Shadow
-		mod_cubes[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
+		modCubes[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
 	}
 }
 
@@ -286,13 +286,13 @@ void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 void CGame::InitGraphics()
 {	
 	//Initialise cubes
-	mod_cubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
-	mod_cubes[0].Initialize(dev);
-	mod_cubes[0].SetPosition(4.0f, 2.0f, -3.0f); //set initial position
-	mod_cubes[0].SetScale(0.2f, 2.0f, 0.2f); //set initial scale
+	modCubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
+	modCubes[0].Initialize(dev);
+	modCubes[0].SetPosition(4.0f, 2.0f, -3.0f); //set initial position
+	modCubes[0].SetScale(0.2f, 2.0f, 0.2f); //set initial scale
 
-	mod_cubes[1].Initialize(dev);
-	mod_cubes[1].SetPosition(0.25f, 2.0f, 2.5f); //set initial position
+	modCubes[1].Initialize(dev);
+	modCubes[1].SetPosition(0.25f, 1.5f, 2.5f); //set initial position
 
 	//Initialise Grid
 	gFloor.Initialize(dev);
@@ -370,10 +370,45 @@ void CGame::InitPipeline()
 }
 
 void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys) {
+	
+	//if player is jumping or above Y = 1.0f
+	if ((playerJumping == true) || (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) > 1.0f)) {
 
-	if (wasd_keys[0] == true) {
-		//if W pressed, move cam position in angle direction
-		Cam.UpdateCameraPosition(lookAngle, false);
+		//adjust camera position to indicate jump.
+		Cam.AdjustCameraPositionY(currFallVelocity);
+
+		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+			Cam.AdjustCameraPositionY(-currFallVelocity);
+			StopPlayerJump();
+		}
+		else {
+			currFallVelocity = currFallVelocity - gravity; //reduce jump velocity by a small amount each time (gravity), such that it becomes negative and player eventually falls.
+		}
+
+		if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
+			StopPlayerJump();
+		}
+	} 
+
+	//if camera position Y is less or equal to 1.0, player is no longer jumping (at ground level). Reset variables to pre-jump defaults.
+	//if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
+	//	StopPlayerJump();
+	//}
+
+	//if W pressed, or player has jumped while w is pressed, AND player is not mid-jump from a stationary position
+	if (((wasd_keys[0] == true) || (ws_jump[0] == true)) && (stationary_jump == false)) {
+
+		//move cam position by pMoveSpeed in direction lookAngle
+		Cam.AdjustCameraPosition(pMoveSpeed, lookAngle);
+
+		//Check for collision with objects
+		//If collision == true, move object back using -pMoveSpeed
+
+		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+			Cam.AdjustCameraPosition(-pMoveSpeed, lookAngle);
+		}
+
+
 	};
 
 	if (wasd_keys[1] == true) {
@@ -382,9 +417,20 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 		Cam.UpdateCameraLookAtXZ(lookAngle);
 	};
 
-	if (wasd_keys[2] == true) {
-		//if S pressed, move cam position in the reversed angle direction (2nd argument = true)
-		Cam.UpdateCameraPosition(lookAngle, true);
+	//if S pressed or player has jumped while s is pressed, AND player is not mid-jump from a stationary position
+	if (((wasd_keys[2] == true) || (ws_jump[1] == true)) && (stationary_jump == false)) {
+		
+		//move cam position by pMoveSpeed in reverse of direction lookAngle
+		Cam.AdjustCameraPosition(-pMoveSpeed, lookAngle);
+
+		//Check for collision with objects (new function)?
+		bool collision = CheckObjPointCollision(Cam.GetCameraPosition());
+
+		//If collision = true, move object back using -pMoveSpeed
+		if (collision == true) {
+			Cam.AdjustCameraPosition(pMoveSpeed, lookAngle);
+		}
+
 	};
 
 	if (wasd_keys[3] == true) {
@@ -403,4 +449,26 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 		Cam.TiltCameraY(false);
 	};
 
+}
+
+bool CGame::CheckObjPointCollision(XMVECTOR point) {
+
+	//Set different leeway values for each object in mod_cubes (if keeping, will want to take this out of hardcoding)
+	std::array<float, 2> modCubes_lw = { 0.2f , 0.5f };
+
+	for (int i = 0; i < ARRAYSIZE(modCubes); i++) {
+		if (modCubes[i].checkPointCollision(point, modCubes_lw[i]) == true) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//call when player is no longer jumping (on ground level).
+void CGame::StopPlayerJump() {
+	playerJumping = false;
+	currFallVelocity = 0;
+	ws_jump[0] = false;
+	ws_jump[1] = false;
+	stationary_jump = false;
 }

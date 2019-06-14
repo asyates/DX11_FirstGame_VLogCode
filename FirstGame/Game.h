@@ -44,14 +44,15 @@ private:
 	float scaleFact; //for scaling model (demo purposes, possibly delete!)
 	float modelScale;
 	float lookAngle; //angle camera is looking
+	float pMoveSpeed = 0.1f;
 	float pi = 3.14f;
 	float initJumpVelocity = 0.15f; //initial jump velocity
-	float currJumpVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
+	float currFallVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
 	float gravity = 0.005f;			//gravity acting to reduce jump velocity
 	bool playerJumping = false;
 
 	Camera Cam;
-	Cube mod_cubes[2];
+	Cube modCubes[2];
 	GridFloor gFloor;
 
 	//define object materials
@@ -67,6 +68,12 @@ private:
 	void DrawGrid(XMMATRIX matView, XMMATRIX matProjection);
 
 	void UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys);
+	bool CheckObjPointCollision(XMVECTOR point);
 
+	void PausePlayerJump();
+	void StopPlayerJump();
+
+	std::array<bool, 2> ws_jump = { false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
+	bool stationary_jump = false; //will become true if player jumps while neither w or s keys are pressed.
 
 };

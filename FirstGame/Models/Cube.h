@@ -4,24 +4,25 @@
 #include "../Content/ShaderStructures.h"
 
 using namespace DirectX;
+using namespace Platform;
 
 class Cube : public Model { 
 
 public:
 	Cube();
 
-	//Get vertices
-	VERTEX * GetModelVertices();
-	UINT GetVertArraySize();
-	
-	//Get indices
-	short * GetModelIndices();
-	UINT GetIndArraySize();
-
 	// Methods to initialise and render graphics (using Model class methods)
 	void Initialize(ComPtr<ID3D11Device> dev);
 	void DrawObject(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, CBUFFERPEROBJECT cbPerObject);
 	void DrawShadow(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, CBUFFERPEROBJECT cbPerObject);
+	bool checkPointCollision(XMVECTOR position, float lw = 0.0f); 
+	bool checkRange(float x, float min, float max , float allowance); //make global function??
+//	std::array<XMVECTOR, 2> rotateMinMaxFix(std::array<XMVECTOR, 2> minmaxArray);
+
+	VERTEX * GetModelVertices(); //Get VERTEX array of vertices
+	UINT GetVertArraySize();	 //Get VERTEX array size
+	short * GetModelIndices();	 //Get array of indices
+	UINT GetIndArraySize();      //Get array size of indices
 
 private:
 

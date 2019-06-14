@@ -12,7 +12,7 @@ public:
 	XMVECTOR GetCameraPosition();
 	void UpdateCameraLookAtXZ(float lookAngle);
 	void TiltCameraY(bool up);
-	void UpdateCameraPosition(float lookAngle, bool reverse);
+	void AdjustCameraPosition(float m, float lookAngle);
 	void AdjustCameraPositionY(float adjustment);
 
 private:
@@ -20,6 +20,5 @@ private:
 	XMVECTOR vecCamLookAt;
 	XMVECTOR vecCamUp;
 
-	float movRate = 0.1f; //camera position movement rate
 	float yaxisRate = 0.02f; //rate camera look at vector changes in y direction
 };

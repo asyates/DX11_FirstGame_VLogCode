@@ -49,6 +49,45 @@ void Cube::DrawShadow(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> 
 	DrawIndexedGraphics(devcon, m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, cbPerObject, ARRAYSIZE(modelIndices));
 }
 
+//check for collision with point. Allow leeway (float lw).
+bool Cube::checkPointCollision(XMVECTOR pos, float lw) {
+
+	XMVECTOR min = { -1.0f, -1.0f, -1.0f, 1.0f };
+	XMVECTOR max = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+	//if scale has changed, multiple axis accordingly
+	min = XMVector4Transform(min, matScale);
+	max = XMVector4Transform(max, matScale);
+
+	//if rotation has changed (can't apply like this for preserving min and max values)
+    //min = XMVector4Transform(min, matRotate);
+	//max = XMVector4Transform(max, matRotate);
+
+	//if position changed
+	min = XMVector4Transform(min, matTranslate);
+	max = XMVector4Transform(max, matTranslate);
+
+	XMFLOAT3 position;
+	XMFLOAT3 minimum;
+	XMFLOAT3 maximum;
+
+	XMStoreFloat3(&position, pos);
+	XMStoreFloat3(&minimum, min);
+	XMStoreFloat3(&maximum, max);
+
+	// if x between x min and max AND y between y min and max and z etc.
+	if ((checkRange(position.x, minimum.x, maximum.x, lw))
+		&& (checkRange(position.y, minimum.y, maximum.y, lw))
+			&& (checkRange(position.z, minimum.z, maximum.z, lw))
+		) {
+		return true;
+	}
+	else {
+		return false;
+	}
+
+}
+
 VERTEX * Cube::GetModelVertices() {
 	return modelVertices;
 }
@@ -65,3 +104,16 @@ UINT Cube::GetIndArraySize() {
 	return ARRAYSIZE(modelIndices);
 }
 
+
+//helper function, to move somewhere later? (optional leeway argument gives leeway for collision detection)
+bool Cube::checkRange(float x, float min, float max, float lw = 0.0f) {
+	
+	//if min and max are wrong way round (can happen during rotation), swap back.
+	if (max < min) {
+		float temp = max;
+		max = min;
+		min = temp;
+	}
+	
+	return ((x > (min-lw)) && (x < (max+lw)));
+}

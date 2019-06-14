@@ -5,7 +5,7 @@
 using namespace DirectX;
 
 Camera::Camera() {
-	vecCamPosition = XMVectorSet(0.0f, 1.0f, -10.0f, 0.0f);
+	vecCamPosition = XMVectorSet(0.0f, 1.0f, -10.0f, 1.0f);
 	vecCamLookAt = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 	vecCamUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 }
@@ -39,22 +39,23 @@ void Camera::TiltCameraY(bool up) {
 
 }
 
-void Camera::UpdateCameraPosition(float lookAngle, bool reverse) {
+//Move Camera position by float m in the direction lookAngle
+void Camera::AdjustCameraPosition(float m, float lookAngle) {
 	
 	//define new x and z floats
 	float new_x;
 	float new_z;
 
 	//check whether we are moving forwards and backwards
-	if (reverse == false) {
+	if (m > 0) {
 		//move cam position in positive direction we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + movRate * cos(lookAngle);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + movRate * sin(lookAngle);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle);
 	}
 	else {
 		//move cam position in opposite direction to way we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + movRate * cos(lookAngle-3.141592f);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + movRate * sin(lookAngle-3.141592f);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle-3.141592f);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle-3.141592f);
 	}
 
 	//update cam position with new x and z coords

@@ -37,7 +37,6 @@ public:
 	XMMATRIX matTranslate; //translation matrix
 	XMMATRIX matRotate; // rotation matrix
 	XMMATRIX matScale; // scaling matrix
-
 	XMMATRIX matWorld; //world matrix
 
 	ComPtr<ID3D11ShaderResourceView> texture; //texture to render to object
