@@ -52,6 +52,12 @@
     <ClCompile Include="Models\GridFloor.cpp">
       <Filter>Models</Filter>
     </ClCompile>
+    <ClCompile Include="Models\MeshGeometry.cpp">
+      <Filter>Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Common\HelperFunctions.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -75,6 +81,12 @@
     <ClInclude Include="Models\GridFloor.h">
       <Filter>Models</Filter>
     </ClInclude>
+    <ClInclude Include="Models\MeshGeometry.h">
+      <Filter>Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\HelperFunctions.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Assets\StoreLogo.png">
@@ -89,6 +101,9 @@
     <Image Include="Images\fence.png">
       <Filter>Images</Filter>
     </Image>
+    <Image Include="Images\Finn.png">
+      <Filter>Images</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -100,5 +115,19 @@
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl" />
     <FxCompile Include="VertexShader.hlsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Models\test.txt">
+      <Filter>Models</Filter>
+    </Text>
+    <Text Include="Models\untitled.obj">
+      <Filter>Models</Filter>
+    </Text>
+    <Text Include="Models\tortoise.obj">
+      <Filter>Models</Filter>
+    </Text>
+    <Text Include="Models\Finn.obj">
+      <Filter>Models</Filter>
+    </Text>
   </ItemGroup>
 </Project>

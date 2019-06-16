@@ -149,7 +149,6 @@ void CGame::Initialize()
 	// initialize graphics and the pipeline
 	InitGraphics();
 	InitPipeline();
-	InitStates();
 
 	//Initialise time and model_scale variable
 	Time = 0.0f;
@@ -234,9 +233,6 @@ void CGame::Render() {
 	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
 	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
 
-	// set the blend state
-	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
-
 	//Draw map grid
 	DrawGrid(matView, matProjection); //Might need to change order of shadow render at later stage.
 
@@ -258,18 +254,35 @@ void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShad
 
 		//calculate final transformation matrix for object
 		cbPerObject.matFinal = modCubes[i].GetWorldMatrix() * matView * matProjection;
-		
+
 		//draw cube
 		modCubes[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
-		
+
 		//Calculate transformation matrix to tranform vertex onto shadow plane
 		XMMATRIX matWorldShadow = modCubes[i].GetWorldMatrix() *matShadow * shadowOffsetY;
-		
+
 		//Assign shadow transformation matrix to constant buffer
 		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
 
 		//Draw Shadow
 		modCubes[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
+
+
+		//TEMPORARY LOCATION FOR LOADED IN MESH
+
+		cbPerObject.matFinal = filemesh[i].GetWorldMatrix() * matView * matProjection;
+		filemesh[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
+
+
+		//Calculate transformation matrix to tranform vertex onto shadow plane
+		matWorldShadow = filemesh[i].GetWorldMatrix() *matShadow * shadowOffsetY;
+
+		//Assign shadow transformation matrix to constant buffer
+		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
+
+		//Draw Shadow
+		filemesh[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
+
 	}
 }
 
@@ -280,6 +293,7 @@ void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 	cbPerObject.matFinal = gFloor.GetWorldMatrix() * matView * matProjection;
 
 	gFloor.Draw(devcon, m_cbufferPerObj, cbPerObject);
+
 }
 
 // this function loads and initializes all graphics data
@@ -298,24 +312,19 @@ void CGame::InitGraphics()
 	gFloor.Initialize(dev);
 	gFloor.SetScale(6.0f, 0.0f, 6.0f);
 
+	//Initialise FileMesh
+
+	filemesh[0].Initialize(dev, "Models/tortoise.obj");
+	filemesh[0].SetPosition(-10.0f, 3.0f, 0.0f);
+
+	filemesh[1].SetTextureFile(L"Images/Finn.png");
+	filemesh[1].Initialize(dev, "Models/Finn.obj");
+	filemesh[1].SetPosition(0.0f, 0.0f, 10.0f);
+	filemesh[1].SetScale(0.25f, 0.25f, 0.25f);
+
 }
 
-void CGame::InitStates()
-{
-	D3D11_BLEND_DESC bd;
-	bd.RenderTarget[0].BlendEnable = TRUE;    // turn on color blending
-	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;    // use addition in the blend equation
-	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;         // use source's alpha
-	bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;    // use inverse source alpha
-	bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-	bd.IndependentBlendEnable = FALSE;    // only use RenderTarget[0]
-	bd.AlphaToCoverageEnable = FALSE;    // enable alpha-to-coverage
 
-	dev->CreateBlendState(&bd, &blendstate);
-}
 
 // this function initializes the GPU settings and prepares it for rendering
 void CGame::InitPipeline()

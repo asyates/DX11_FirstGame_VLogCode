@@ -46,7 +46,7 @@ void Cube::DrawShadow(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> 
 	cbPerObject.matRotate = GetRotationMatrix();
 
 	//Call method from model class
-	DrawIndexedGraphics(devcon, m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, cbPerObject, ARRAYSIZE(modelIndices));
+	DrawIndexedShadows(devcon, m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, cbPerObject, ARRAYSIZE(modelIndices));
 }
 
 //check for collision with point. Allow leeway (float lw).

@@ -33,3 +33,8 @@ struct CBUFFERPERFRAME {
 	XMVECTOR DiffuseVector;
 	XMVECTOR EyePos; //for specular lighting
 };
+
+struct OBJINFO {
+	std::vector<VERTEX> Vertices;
+	std::vector<short> Indices;
+};

@@ -5,6 +5,7 @@
 #include "Common/DirectXHelper.h"
 #include "Models/Cube.h"
 #include "Models/GridFloor.h"
+#include "Models/MeshGeometry.h"
 
 using namespace Microsoft::WRL;
 using namespace Windows::UI::Core;
@@ -17,7 +18,6 @@ public:
 
 	void Initialize();
 	void InitGraphics();
-	void InitStates();
 	void InitPipeline();
 	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress);
 	void Render();
@@ -37,7 +37,6 @@ private:
 	ComPtr<ID3D11PixelShader> pixelshader;          // the pixel shader interface
 	ComPtr<ID3D11InputLayout> inputlayout;          // the input layout interface
 	ComPtr<ID3D11ShaderResourceView> texture1;		// avatar texture
-	ComPtr<ID3D11BlendState> blendstate;            // the blend state interface
 
 private:
 	float Time;
@@ -53,6 +52,7 @@ private:
 
 	Camera Cam;
 	Cube modCubes[2];
+	MeshGeometry filemesh[2];
 	GridFloor gFloor;
 
 	//define object materials
@@ -70,7 +70,6 @@ private:
 	void UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys);
 	bool CheckObjPointCollision(XMVECTOR point);
 
-	void PausePlayerJump();
 	void StopPlayerJump();
 
 	std::array<bool, 2> ws_jump = { false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred

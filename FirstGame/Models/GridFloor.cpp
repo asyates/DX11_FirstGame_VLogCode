@@ -28,7 +28,6 @@ void GridFloor::Draw(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m
 
 	//Call method from model class
 	DrawGraphics(devcon, m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP, cbPerObject, ARRAYSIZE(modelVertices));
-
 }
 
 VERTEX * GridFloor::GetModelVertices() {

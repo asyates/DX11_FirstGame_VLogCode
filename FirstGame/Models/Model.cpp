@@ -33,7 +33,11 @@ void Model::InitGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertA
 
 	//Load texture using DirectXTK method
 	HRESULT hr = CreateWICTextureFromFile(dev.Get(), nullptr, texfilename, nullptr, &texture, 0);
+
+	//Initialise states
+	InitStates(dev);
 }
+
 //Initialise model that has indices defined
 void Model::InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertArraySize, short indices[], UINT indArraySize) {
 
@@ -58,10 +62,59 @@ void Model::InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UIN
 	//Load texture using DirectXTK method
 	hr = CreateWICTextureFromFile(dev.Get(), nullptr, texfilename, nullptr, &texture, 0);
 
+	//Initialise states
+	InitStates(dev);
+}
+
+void Model::InitStates(ComPtr<ID3D11Device> dev)
+{
+	//Setup blending state
+
+	D3D11_BLEND_DESC bd;
+	bd.RenderTarget[0].BlendEnable = TRUE;    // turn on color blending
+	bd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;    // use addition in the blend equation
+	bd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;         // use source's alpha
+	bd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;    // use inverse source alpha
+	bd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	bd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	bd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	bd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	bd.IndependentBlendEnable = FALSE;    // only use RenderTarget[0]
+	bd.AlphaToCoverageEnable = FALSE;    // enable alpha-to-coverage
+
+	dev->CreateBlendState(&bd, &blendstate);
+
+	//Setup depth stencil state to prevent double blending
+
+	D3D11_DEPTH_STENCIL_DESC noDoubleBlendDesc;
+	noDoubleBlendDesc.DepthEnable = true;
+	noDoubleBlendDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	noDoubleBlendDesc.DepthFunc = D3D11_COMPARISON_LESS;
+	noDoubleBlendDesc.StencilEnable = true;
+	noDoubleBlendDesc.StencilReadMask = 0xff;
+	noDoubleBlendDesc.StencilWriteMask = 0xff;
+
+	noDoubleBlendDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+	noDoubleBlendDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+
+	//backface setting, though not currently needed.
+	noDoubleBlendDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	noDoubleBlendDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
+	noDoubleBlendDesc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
+
+	dev->CreateDepthStencilState(&noDoubleBlendDesc, &noDoubleBlendSS);
+
 }
 
 void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT vertArraySize) {
 	
+	// set the blend state
+	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
+	devcon->OMSetDepthStencilState(nullptr, 0);
+
 	//Set Vertex Buffers
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
@@ -80,6 +133,10 @@ void Model::DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffe
 
 void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize) {
 	
+	// set the blend state
+	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
+	devcon->OMSetDepthStencilState(nullptr, 0);
+
 	// set the vertex buffer and index buffer
 	UINT stride = sizeof(VERTEX);
 	UINT offset = 0;
@@ -99,6 +156,31 @@ void Model::DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D
 
 	devcon->DrawIndexed(indArraySize, 0, 0);
 }
+
+void Model::DrawIndexedShadows(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize) {
+
+	devcon->OMSetBlendState(blendstate.Get(), 0, 0xffffffff);
+	devcon->OMSetDepthStencilState(noDoubleBlendSS.Get(), 0);
+
+	// set the vertex buffer and index buffer
+	UINT stride = sizeof(VERTEX);
+	UINT offset = 0;
+	devcon->IASetVertexBuffers(0, 1, vertexbuffer.GetAddressOf(), &stride, &offset);
+	devcon->IASetIndexBuffer(indexbuffer.Get(), DXGI_FORMAT_R16_UINT, 0);
+
+	//// set the primitive topology
+	devcon->IASetPrimitiveTopology(topology);
+
+	// tell the GPU which texture to use
+	devcon->PSSetShaderResources(0, 1, texture.GetAddressOf());
+
+	// load the data into the constant buffer
+	devcon->UpdateSubresource(m_cbufferPerObject.Get(), 0, 0, &cbPerObject, 0, 0);
+
+	devcon->DrawIndexed(indArraySize, 0, 0);
+}
+
+
 
 void Model::SetTextureFile(const wchar_t* filename) {
 	texfilename = filename;

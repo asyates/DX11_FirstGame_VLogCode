@@ -12,9 +12,11 @@ public:
 	Model();
 
 	void InitGraphics(ComPtr<ID3D11Device> dev,VERTEX vertices[], UINT vertArraySize);
+	void InitStates(ComPtr<ID3D11Device> dev);
 	void InitIndexedGraphics(ComPtr<ID3D11Device> dev, VERTEX vertices[], UINT vertArraySize, short indices[], UINT indArraySize);
 	void DrawGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT vertArraySize);
 	void DrawIndexedGraphics(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize);
+	void DrawIndexedShadows(ComPtr<ID3D11DeviceContext1> devcon, ComPtr<ID3D11Buffer> m_cbufferPerObject, D3D11_PRIMITIVE_TOPOLOGY topology, CBUFFERPEROBJECT cbPerObject, UINT indArraySize);
 
 	//Set the texture to be used for model
 		//filename for texture
@@ -45,5 +47,7 @@ private:
 
 	ComPtr<ID3D11Buffer> vertexbuffer; //vertex buffer
 	ComPtr<ID3D11Buffer> indexbuffer; //index buffer
+	ComPtr<ID3D11BlendState> blendstate;            // the blend state interface
+	ComPtr<ID3D11DepthStencilState> noDoubleBlendSS; //depth stencil interface to prevent double blending
 
 };
