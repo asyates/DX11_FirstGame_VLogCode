@@ -225,6 +225,30 @@ void Model::SetRotation(float x, float y, float z) {
 	UpdateWorldMatrix();
 }
 
+void Model::AdjustRotation(float x, float y, float z) {
+
+	//set each rotation matrix (indiv axis) to identity matrix
+
+	XMMATRIX matRotateX = XMMatrixIdentity();
+	XMMATRIX matRotateY = XMMatrixIdentity();
+	XMMATRIX matRotateZ = XMMatrixIdentity();
+
+	//check if change required before updating corresponding axis rotation
+	if (x != 0) {
+		matRotateX = XMMatrixRotationX(x);
+	}
+	if (y != 0) {
+		matRotateY = XMMatrixRotationY(y);
+	}
+	if (z != 0) {
+		matRotateZ = XMMatrixRotationZ(z);
+	}
+	
+	//Don't reset matRotate for adjusting rotation
+	matRotate = matRotate * matRotateX * matRotateY * matRotateZ;
+
+}
+
 void Model::SetScale(float x, float y, float z) {
 
 	//update scale vector (unsure if needed at this stage, but keeping for now)
@@ -247,4 +271,8 @@ XMMATRIX Model::GetWorldMatrix() {
 
 XMMATRIX Model::GetRotationMatrix() {
 	return matRotate;
+}
+
+XMVECTOR Model::GetPosition() {
+	return position;
 }

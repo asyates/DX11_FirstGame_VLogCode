@@ -22,6 +22,9 @@ public:
 	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress);
 	void Render();
 
+	//Functions Called From App Class
+	void FireArrow();
+
 private:
 	ComPtr<ID3D11Device> dev;                      // the device interface
 	ComPtr<ID3D11DeviceContext1> devcon;            // the device context interface
@@ -53,6 +56,8 @@ private:
 	Camera Cam;
 	Cube modCubes[2];
 	MeshGeometry filemesh[2];
+	MeshGeometry arrow; //define arrow
+
 	GridFloor gFloor;
 
 	//define object materials
@@ -73,6 +78,8 @@ private:
 	void StopPlayerJump();
 
 	std::array<bool, 2> ws_jump = { false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
+	
 	bool stationary_jump = false; //will become true if player jumps while neither w or s keys are pressed.
-
+	bool arrowFired = false; //false if arrow not fired
+	float arrowDirection; //hold direction arrow is fired. 
 };

@@ -195,6 +195,15 @@ void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_
 		modCubes[1].SetScale(scaleFact, scaleFact, scaleFact);
 	}
 
+	if (arrowFired == true) {
+		//move cam position in positive direction we are looking
+		XMVECTOR arrowPosition = arrow.GetPosition();
+
+		float new_x= XMVectorGetByIndex(arrowPosition, 0) + abs(0.03f) * cos(-arrowDirection);
+		float new_z = XMVectorGetByIndex(arrowPosition, 2) + abs(0.03f) * sin(-arrowDirection);
+
+		arrow.SetPosition(new_x, 0.5f, new_z);
+	}
 }
 
 // this function renders a single frame of 3D graphics
@@ -232,6 +241,12 @@ void CGame::Render() {
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
 	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
 	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
+
+	// Draw arrow if fired
+	if (arrowFired == true) {
+		cbPerObject.matFinal = arrow.GetWorldMatrix() * matView * matProjection;
+		arrow.DrawObject(devcon, m_cbufferPerObj, cbPerObject);
+	}
 
 	//Draw map grid
 	DrawGrid(matView, matProjection); //Might need to change order of shadow render at later stage.
@@ -299,6 +314,13 @@ void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 // this function loads and initializes all graphics data
 void CGame::InitGraphics()
 {	
+
+	//Initialise Arrow
+	arrow.SetTextureFile(L"Images/arrowTexture.png");
+	arrow.Initialize(dev, "Models/arrow.obj");
+	arrow.SetRotation(0.0f, 0.0f, pi / 2); //bring parallel with x-z place
+	arrow.AdjustRotation(0.0f, pi, 0.0f); //re-direct so it is pointing at zero degree lookAngle.
+
 	//Initialise cubes
 	modCubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
 	modCubes[0].Initialize(dev);
@@ -315,7 +337,7 @@ void CGame::InitGraphics()
 	//Initialise FileMesh
 
 	filemesh[0].Initialize(dev, "Models/tortoise.obj");
-	filemesh[0].SetPosition(-10.0f, 3.0f, 0.0f);
+	filemesh[0].SetPosition(-10.0f, 2.5f, 0.0f);
 
 	filemesh[1].SetTextureFile(L"Images/Finn.png");
 	filemesh[1].Initialize(dev, "Models/Finn.obj");
@@ -480,4 +502,21 @@ void CGame::StopPlayerJump() {
 	ws_jump[0] = false;
 	ws_jump[1] = false;
 	stationary_jump = false;
+}
+
+void CGame::FireArrow() {
+	if (arrowFired == false) {
+		arrowFired = true;
+
+		//Update position of arrow to be where player is.
+		XMFLOAT4 CamPosition;
+		XMStoreFloat4(&CamPosition, Cam.GetCameraPosition());
+		arrow.SetPosition(CamPosition.x,CamPosition.y-0.3f, CamPosition.z);
+
+		//Rotate arrow based on look angle (should be pointed in camera view direction)
+		arrowDirection = -lookAngle; //negative because rotate angle increases clockwise (and camera anti-clockwise)
+		arrow.AdjustRotation(0.0f, arrowDirection, 0.0f); 
+		arrow.SetScale(0.2f, 0.2f, 0.2f);
+		
+	}
 }

@@ -33,6 +33,9 @@ public:
 	void KeyDown(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::KeyEventArgs^ args);
 	void KeyUp(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::KeyEventArgs^ args);
 
+	//Pointer Events
+	void PointerPressed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
+
 	//Other Event Handlers
 	void Closed(CoreWindow^ sender, CoreWindowEventArgs^ args);
 

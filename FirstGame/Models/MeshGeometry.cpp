@@ -104,7 +104,7 @@ OBJINFO MeshGeometry::ReadObjFileVertices(std::string filename) {
 				}
 				else if (checkChar == 't') {
 					float u, v, w;
-					inFile >> u >> v >> w;
+					inFile >> u >> v;
 
 					texcoords.push_back(XMFLOAT2(u, 1-v)); //currently not using w
 					hasTexcoords = true;
@@ -241,7 +241,7 @@ OBJINFO MeshGeometry::ReadObjFileVertices(std::string filename) {
 			}
 		}
 
-		for (int i = 0; i < vertexInfoArray.size(); i++) {
+		for (size_t i = 0; i < vertexInfoArray.size(); i++) {
 			VERTEX newVertex = GetVertex(vertices, normals, texcoords, vertexInfoArray[i]); //get new vertex using info from file
 			modelVertices.push_back(newVertex); //add to modelVertices
 		}

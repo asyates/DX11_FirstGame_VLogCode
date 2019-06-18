@@ -29,6 +29,9 @@ void App::SetWindow(CoreWindow^ Window) {
 	//Event handlers for detecting key presses
 	Window->KeyDown += ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::KeyDown);
 	Window->KeyUp += ref new TypedEventHandler<CoreWindow^, KeyEventArgs^>(this, &App::KeyUp);
+
+	//Event handler for mouse actions
+	Window->PointerPressed += ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::PointerPressed);
 }
 
 void App::Load(String^ EntryPoint) {}
@@ -76,6 +79,10 @@ void App::Closed(CoreWindow^ sender, CoreWindowEventArgs^ args) {
 	WindowClosed = true; //terminates endless loop
 }
 
+void App::PointerPressed(CoreWindow^ sender, PointerEventArgs^ args) {
+	Game.FireArrow();
+}
+
 void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 
 	//check which key is pressed down
@@ -114,8 +121,6 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 	if (args->VirtualKey == VirtualKey::Space) {
 		spacePress = true;
 	}
-
-
 }
 
 void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {

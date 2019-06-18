@@ -23,18 +23,20 @@ public:
 	const wchar_t* texfilename;
 	void SetTextureFile(const wchar_t* filename);
 
-	//Methods for updating position, rotation, and scale of model
+	//Methods for setting position, rotation, and scale of model
 	void SetPosition(float x, float y, float z);
 	void SetRotation(float x, float y, float z);
 	void SetScale(float x, float y, float z);
 
+	//Methods for adjusting position, rotation, and scale
+	void AdjustRotation(float x, float y, float z);
+
+	//Methods for getting position, rotation, scale
+	XMVECTOR GetPosition();
+
 	void UpdateWorldMatrix();
 	XMMATRIX GetWorldMatrix();
 	XMMATRIX GetRotationMatrix();
-
-	XMVECTOR position; //define x, y, and z position in world space
-	XMVECTOR rotation; //define rotation in x,y, and z axis.
-	XMVECTOR scale; //define scale in x, y, and z direction
 
 	XMMATRIX matTranslate; //translation matrix
 	XMMATRIX matRotate; // rotation matrix
@@ -49,5 +51,9 @@ private:
 	ComPtr<ID3D11Buffer> indexbuffer; //index buffer
 	ComPtr<ID3D11BlendState> blendstate;            // the blend state interface
 	ComPtr<ID3D11DepthStencilState> noDoubleBlendSS; //depth stencil interface to prevent double blending
+
+	XMVECTOR position; //define x, y, and z position in world space
+	XMVECTOR rotation; //define rotation in x,y, and z axis.
+	XMVECTOR scale; //define scale in x, y, and z direction
 
 };

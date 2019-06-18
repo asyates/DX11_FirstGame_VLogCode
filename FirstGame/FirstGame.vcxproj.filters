@@ -43,20 +43,20 @@
     <ClCompile Include="Content\Camera.cpp">
       <Filter>Content</Filter>
     </ClCompile>
-    <ClCompile Include="Models\Cube.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
-    <ClCompile Include="Models\Model.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
-    <ClCompile Include="Models\GridFloor.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
-    <ClCompile Include="Models\MeshGeometry.cpp">
-      <Filter>Models</Filter>
-    </ClCompile>
     <ClCompile Include="Common\HelperFunctions.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\Model.cpp">
+      <Filter>Content</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\MeshGeometry.cpp">
+      <Filter>Content</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\Cube.cpp">
+      <Filter>Content</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\GridFloor.cpp">
+      <Filter>Content</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -72,20 +72,20 @@
     <ClInclude Include="Common\DirectXHelper.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Models\Cube.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="Models\Model.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="Models\GridFloor.h">
-      <Filter>Models</Filter>
-    </ClInclude>
-    <ClInclude Include="Models\MeshGeometry.h">
-      <Filter>Models</Filter>
-    </ClInclude>
     <ClInclude Include="Common\HelperFunctions.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\Model.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\MeshGeometry.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\GridFloor.h">
+      <Filter>Content</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\Cube.h">
+      <Filter>Content</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +104,9 @@
     <Image Include="Images\Finn.png">
       <Filter>Images</Filter>
     </Image>
+    <Image Include="Images\arrowTexture.png">
+      <Filter>Images</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest" />
@@ -117,9 +120,6 @@
     <FxCompile Include="VertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="Models\test.txt">
-      <Filter>Models</Filter>
-    </Text>
     <Text Include="Models\untitled.obj">
       <Filter>Models</Filter>
     </Text>
@@ -127,6 +127,9 @@
       <Filter>Models</Filter>
     </Text>
     <Text Include="Models\Finn.obj">
+      <Filter>Models</Filter>
+    </Text>
+    <Text Include="Models\arrow.obj">
       <Filter>Models</Filter>
     </Text>
   </ItemGroup>
