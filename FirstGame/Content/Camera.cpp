@@ -11,11 +11,11 @@ Camera::Camera() {
 }
 
 //adjust camera look at vector in XZ plane
-void Camera::UpdateCameraLookAtXZ(float lookAngle) {
+void Camera::UpdateCameraLookAtXZ(float lookAngleXZ) {
 	
 	//get new x and z coordinates of unit circle cenetered on current cam position
-	float new_x = XMVectorGetByIndex(vecCamPosition, 0) + cos(lookAngle);
-	float new_z = XMVectorGetByIndex(vecCamPosition, 2) + sin(lookAngle);
+	float new_x = XMVectorGetByIndex(vecCamPosition, 0) + cos(lookAngleXZ);
+	float new_z = XMVectorGetByIndex(vecCamPosition, 2) + sin(lookAngleXZ);
 
 	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_x, 0);
 	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_z, 2);
@@ -39,8 +39,8 @@ void Camera::TiltCameraY(bool up) {
 
 }
 
-//Move Camera position by float m in the direction lookAngle
-void Camera::AdjustCameraPosition(float m, float lookAngle) {
+//Move Camera position by float m in the direction lookAngleXZ
+void Camera::AdjustCameraPosition(float m, float lookAngleXZ) {
 
 	//define new x and z floats
 	float new_x;
@@ -49,13 +49,13 @@ void Camera::AdjustCameraPosition(float m, float lookAngle) {
 	//check whether we are moving forwards and backwards
 	if (m > 0) {
 		//move cam position in positive direction we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ);
 	}
 	else {
 		//move cam position in opposite direction to way we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle - 3.141592f);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle - 3.141592f);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ - 3.141592f);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ - 3.141592f);
 	}
 
 	//update cam position with new x and z coords

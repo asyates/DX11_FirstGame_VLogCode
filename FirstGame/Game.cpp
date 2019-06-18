@@ -154,8 +154,8 @@ void CGame::Initialize()
 	Time = 0.0f;
 	scaleFact = 1.0f;
 	modelScale = 1.0f;
-	lookAngle = pi/2;
-	Cam.UpdateCameraLookAtXZ(lookAngle);
+	lookAngleXZ = pi/2;
+	Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 
 }
 
@@ -317,7 +317,7 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 
 
 	//if W pressed, or player has jumped while w is pressed, AND player is not mid-jump from a stationary position
-	if ((wasd_keys[0] == true) && (stationary_jump == false)) {
+	if (((wasd_keys[0] == true) || (ws_jump[0] == true)) && ((stationary_jump == false) && ws_jump[1] == false)) {
 
 		float angle; //angle for player to move in
 
@@ -326,12 +326,12 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
 		}
 		else {
-			angle = lookAngle;
+			angle = lookAngleXZ;
 		}
  		
-		//move cam position by pMoveSpeed in direction lookAngle
+		//move cam position by pMoveSpeed in direction lookAngleXZ
 		Cam.AdjustCameraPosition(pMoveSpeed, angle);
-		Cam.UpdateCameraLookAtXZ(lookAngle);
+		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 
 		//Check for collision with objects
 		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
@@ -341,12 +341,12 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 
 	if (wasd_keys[1] == true) {
 		//if A pressed, increase angle (goes counter-clockwise)
-		lookAngle += 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngle);
+		lookAngleXZ += 0.05f;
+		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 	};
 
 	//if S pressed or player has jumped while s is pressed, AND player is not mid-jump from a stationary position
-	if ((wasd_keys[2] == true) && (stationary_jump == false)) {
+	if (((wasd_keys[2] == true) || (ws_jump[1] == true)) && ((stationary_jump == false) && ws_jump[0] == false)) {
 		
 		float angle; //angle for player to move in
 
@@ -355,12 +355,12 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
 		}
 		else {
-			angle = lookAngle; 
+			angle = lookAngleXZ; 
 		}
 
-		//move cam position by pMoveSpeed in reverse of direction lookAngle
+		//move cam position by pMoveSpeed in reverse of direction lookAngleXZ
 		Cam.AdjustCameraPosition(-pMoveSpeed, angle);
-		Cam.UpdateCameraLookAtXZ(lookAngle);
+		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 
 		//Check for collision with objects (new function)?
 		bool collision = CheckObjPointCollision(Cam.GetCameraPosition());
@@ -369,13 +369,12 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 		if (collision == true) {
 			Cam.AdjustCameraPosition(pMoveSpeed, angle);
 		}
-
 	};
 
 	if (wasd_keys[3] == true) {
 		//if D pressed, decrease angle
-		lookAngle -= 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngle);
+		lookAngleXZ -= 0.05f;
+		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 	};
 
 	if (direction_keys[1] == true) {
@@ -422,7 +421,7 @@ void CGame::FireArrow() {
 		arrow.SetPosition(CamPosition.x,CamPosition.y-0.3f, CamPosition.z);
 
 		//Rotate arrow based on look angle (should be pointed in camera view direction)
-		arrowDirection = -lookAngle; //negative because rotate angle increases clockwise (and camera anti-clockwise)
+		arrowDirection = -lookAngleXZ; //negative because rotate angle increases clockwise (and camera anti-clockwise)
 		arrow.AdjustRotation(0.0f, arrowDirection, 0.0f); 
 		arrow.SetScale(0.2f, 0.2f, 0.2f);
 		
@@ -434,7 +433,7 @@ void CGame::PlayerJump(std::array<bool, 4> wasd_keys) {
 	//if space has been pressed, and player not already jumping, set playing jumping to true.
 	if (playerJumping == false) {
 		playerJumping = true;
-		jumpAngle = lookAngle;
+		jumpAngle = lookAngleXZ;
 		currFallVelocity = initJumpVelocity;
 
 		//if w or s keys pressed when player starts jump, set corresponding values in ws_key bool array to true.
@@ -458,7 +457,7 @@ void CGame::InitGraphics()
 	arrow.SetTextureFile(L"Images/arrowTexture.png");
 	arrow.Initialize(dev, "Models/arrow.obj");
 	arrow.SetRotation(0.0f, 0.0f, pi / 2); //bring parallel with x-z place
-	arrow.AdjustRotation(0.0f, pi, 0.0f); //re-direct so it is pointing at zero degree lookAngle.
+	arrow.AdjustRotation(0.0f, pi, 0.0f); //re-direct so it is pointing at zero degree lookAngleXZ.
 
 	//Initialise cubes
 	modCubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().

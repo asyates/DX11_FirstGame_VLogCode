@@ -11,9 +11,9 @@ public:
 	XMMATRIX GetCameraView();
 	XMVECTOR GetCameraPosition();
 	
-	void UpdateCameraLookAtXZ(float lookAngle);
+	void UpdateCameraLookAtXZ(float lookAngleXZ);
 	void TiltCameraY(bool up);
-	void AdjustCameraPosition(float m, float lookAngle);
+	void AdjustCameraPosition(float m, float lookAngleXZ);
 	void AdjustCameraPositionY(float adjustment);
 
 private:

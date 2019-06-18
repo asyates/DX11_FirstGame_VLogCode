@@ -51,6 +51,11 @@ void App::Run() {
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
 		Game.Update(wasd_keys, direction_keys, gh_keys);
+
+		if (spacePress == true) {
+			Game.PlayerJump(wasd_keys);
+		}
+
 		Game.Render();
 
 	}
@@ -120,7 +125,6 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 	//space key
 	if (args->VirtualKey == VirtualKey::Space) {
 		spacePress = true;
-		Game.PlayerJump(wasd_keys);
 	}
 }
 

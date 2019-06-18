@@ -47,7 +47,7 @@ private:
 	float Time;
 	float scaleFact; //for scaling model (demo purposes, possibly delete!)
 	float modelScale;
-	float lookAngle; //angle camera is looking
+	float lookAngleXZ; //angle camera is looking
 	float pMoveSpeed = 0.1f;
 	float pi = 3.14f;
 	float initJumpVelocity = 0.15f; //initial jump velocity
@@ -60,12 +60,8 @@ private:
 	Cube modCubes[2];
 	MeshGeometry filemesh[2];
 	MeshGeometry arrow; //define arrow
-
 	GridFloor gFloor;
 
-	//define object materials
-	MATERIAL mGridMat;
-	
 	//Constant buffer structures
 	CBUFFERPERFRAME cbPerFrame;
 	CBUFFERPEROBJECT cbPerObject;
