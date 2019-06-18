@@ -160,24 +160,7 @@ void CGame::Initialize()
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress) {
-
-	//if space has been pressed, and player not already jumping, set playing jumping to true.
-	if ((spacePress == true) && (playerJumping == false)) {
-		playerJumping = true;
-		currFallVelocity = initJumpVelocity;
-
-		//if w or s keys pressed when player starts jump, set corresponding values in ws_key bool array to true.
-		if (wasd_keys[0] == true) {
-			ws_jump[0] = true;
-		}
-		else if (wasd_keys[2] == true) {
-			ws_jump[1] = true;
-		}
-		else {
-			stationary_jump = true;
-		}
-	}
+void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys) {
 
 	//Update camera position based on wasd keypress and jump
 	UpdateGameCamera(wasd_keys, direction_keys);
@@ -311,9 +294,165 @@ void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
 
 }
 
+void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys) {
+	
+	//if player is jumping or above Y = 1.0f
+	if ((playerJumping == true) || (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) > 1.0f)) {
+
+		//adjust camera position to indicate jump.
+		Cam.AdjustCameraPositionY(currFallVelocity);
+
+		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+			Cam.AdjustCameraPositionY(-currFallVelocity);
+			StopPlayerJump();
+		}
+		else {
+			currFallVelocity = currFallVelocity - gravity; //reduce jump velocity by a small amount each time (gravity), such that it becomes negative and player eventually falls.
+		}
+
+		if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
+			StopPlayerJump();
+		}
+	} 
+
+
+	//if W pressed, or player has jumped while w is pressed, AND player is not mid-jump from a stationary position
+	if ((wasd_keys[0] == true) && (stationary_jump == false)) {
+
+		float angle; //angle for player to move in
+
+		//check if jumping (angle of movement should not change if so)
+		if (ws_jump[0] == true) {
+			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
+		}
+		else {
+			angle = lookAngle;
+		}
+ 		
+		//move cam position by pMoveSpeed in direction lookAngle
+		Cam.AdjustCameraPosition(pMoveSpeed, angle);
+		Cam.UpdateCameraLookAtXZ(lookAngle);
+
+		//Check for collision with objects
+		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+			Cam.AdjustCameraPosition(-pMoveSpeed, angle);
+		}
+	};
+
+	if (wasd_keys[1] == true) {
+		//if A pressed, increase angle (goes counter-clockwise)
+		lookAngle += 0.05f;
+		Cam.UpdateCameraLookAtXZ(lookAngle);
+	};
+
+	//if S pressed or player has jumped while s is pressed, AND player is not mid-jump from a stationary position
+	if ((wasd_keys[2] == true) && (stationary_jump == false)) {
+		
+		float angle; //angle for player to move in
+
+	//check if jumping (angle of movement should not change if so)
+		if (ws_jump[1] == true) {
+			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
+		}
+		else {
+			angle = lookAngle; 
+		}
+
+		//move cam position by pMoveSpeed in reverse of direction lookAngle
+		Cam.AdjustCameraPosition(-pMoveSpeed, angle);
+		Cam.UpdateCameraLookAtXZ(lookAngle);
+
+		//Check for collision with objects (new function)?
+		bool collision = CheckObjPointCollision(Cam.GetCameraPosition());
+
+		//If collision = true, move object back using -pMoveSpeed
+		if (collision == true) {
+			Cam.AdjustCameraPosition(pMoveSpeed, angle);
+		}
+
+	};
+
+	if (wasd_keys[3] == true) {
+		//if D pressed, decrease angle
+		lookAngle -= 0.05f;
+		Cam.UpdateCameraLookAtXZ(lookAngle);
+	};
+
+	if (direction_keys[1] == true) {
+		//if Up pressed, increase y coordinate of look direction
+		Cam.TiltCameraY(true);
+	};
+
+	if (direction_keys[3] == true) {
+		//if Up pressed, increase y coordinate of look direction
+		Cam.TiltCameraY(false);
+	};
+
+}
+
+bool CGame::CheckObjPointCollision(XMVECTOR point) {
+
+	//Set different leeway values for each object in mod_cubes (if keeping, will want to take this out of hardcoding)
+	std::array<float, 2> modCubes_lw = { 0.2f , 0.5f };
+
+	for (int i = 0; i < ARRAYSIZE(modCubes); i++) {
+		if (modCubes[i].checkPointCollision(point, modCubes_lw[i]) == true) {
+			return true;
+		}
+	}
+	return false;
+}
+
+//call when player is no longer jumping (on ground level).
+void CGame::StopPlayerJump() {
+	playerJumping = false;
+	currFallVelocity = 0;
+	ws_jump[0] = false;
+	ws_jump[1] = false;
+	stationary_jump = false;
+}
+
+void CGame::FireArrow() {
+	if (arrowFired == false) {
+		arrowFired = true;
+
+		//Update position of arrow to be where player is.
+		XMFLOAT4 CamPosition;
+		XMStoreFloat4(&CamPosition, Cam.GetCameraPosition());
+		arrow.SetPosition(CamPosition.x,CamPosition.y-0.3f, CamPosition.z);
+
+		//Rotate arrow based on look angle (should be pointed in camera view direction)
+		arrowDirection = -lookAngle; //negative because rotate angle increases clockwise (and camera anti-clockwise)
+		arrow.AdjustRotation(0.0f, arrowDirection, 0.0f); 
+		arrow.SetScale(0.2f, 0.2f, 0.2f);
+		
+	}
+}
+
+void CGame::PlayerJump(std::array<bool, 4> wasd_keys) {
+	
+	//if space has been pressed, and player not already jumping, set playing jumping to true.
+	if (playerJumping == false) {
+		playerJumping = true;
+		jumpAngle = lookAngle;
+		currFallVelocity = initJumpVelocity;
+
+		//if w or s keys pressed when player starts jump, set corresponding values in ws_key bool array to true.
+		if (wasd_keys[0] == true) {
+			ws_jump[0] = true;
+		}
+		else if (wasd_keys[2] == true) {
+			ws_jump[1] = true;
+		}
+		else {
+			stationary_jump = true;
+		}
+	}
+}
+
 // this function loads and initializes all graphics data
 void CGame::InitGraphics()
-{	
+{
 
 	//Initialise Arrow
 	arrow.SetTextureFile(L"Images/arrowTexture.png");
@@ -386,7 +525,7 @@ void CGame::InitPipeline()
 	dev->CreateBuffer(&mbd, nullptr, &m_cbufferPerObj);
 
 	devcon->VSSetConstantBuffers(0, 1, m_cbufferPerObj.GetAddressOf());
-	
+
 	//create light constant buffer
 	D3D11_BUFFER_DESC lbd = { 0 };
 
@@ -398,125 +537,4 @@ void CGame::InitPipeline()
 
 	devcon->VSSetConstantBuffers(1, 1, m_cbufferPerFrame.GetAddressOf());
 
-}
-
-void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys) {
-	
-	//if player is jumping or above Y = 1.0f
-	if ((playerJumping == true) || (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) > 1.0f)) {
-
-		//adjust camera position to indicate jump.
-		Cam.AdjustCameraPositionY(currFallVelocity);
-
-		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
-			Cam.AdjustCameraPositionY(-currFallVelocity);
-			StopPlayerJump();
-		}
-		else {
-			currFallVelocity = currFallVelocity - gravity; //reduce jump velocity by a small amount each time (gravity), such that it becomes negative and player eventually falls.
-		}
-
-		if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
-			StopPlayerJump();
-		}
-	} 
-
-	//if camera position Y is less or equal to 1.0, player is no longer jumping (at ground level). Reset variables to pre-jump defaults.
-	//if (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) <= 1.0f) {
-	//	StopPlayerJump();
-	//}
-
-	//if W pressed, or player has jumped while w is pressed, AND player is not mid-jump from a stationary position
-	if (((wasd_keys[0] == true) || (ws_jump[0] == true)) && (stationary_jump == false)) {
-
-		//move cam position by pMoveSpeed in direction lookAngle
-		Cam.AdjustCameraPosition(pMoveSpeed, lookAngle);
-
-		//Check for collision with objects
-		//If collision == true, move object back using -pMoveSpeed
-
-		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
-			Cam.AdjustCameraPosition(-pMoveSpeed, lookAngle);
-		}
-
-
-	};
-
-	if (wasd_keys[1] == true) {
-		//if A pressed, increase angle (goes counter-clockwise)
-		lookAngle += 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngle);
-	};
-
-	//if S pressed or player has jumped while s is pressed, AND player is not mid-jump from a stationary position
-	if (((wasd_keys[2] == true) || (ws_jump[1] == true)) && (stationary_jump == false)) {
-		
-		//move cam position by pMoveSpeed in reverse of direction lookAngle
-		Cam.AdjustCameraPosition(-pMoveSpeed, lookAngle);
-
-		//Check for collision with objects (new function)?
-		bool collision = CheckObjPointCollision(Cam.GetCameraPosition());
-
-		//If collision = true, move object back using -pMoveSpeed
-		if (collision == true) {
-			Cam.AdjustCameraPosition(pMoveSpeed, lookAngle);
-		}
-
-	};
-
-	if (wasd_keys[3] == true) {
-		//if D pressed, decrease angle
-		lookAngle -= 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngle);
-	};
-
-	if (direction_keys[1] == true) {
-		//if Up pressed, increase y coordinate of look direction
-		Cam.TiltCameraY(true);
-	};
-
-	if (direction_keys[3] == true) {
-		//if Up pressed, increase y coordinate of look direction
-		Cam.TiltCameraY(false);
-	};
-
-}
-
-bool CGame::CheckObjPointCollision(XMVECTOR point) {
-
-	//Set different leeway values for each object in mod_cubes (if keeping, will want to take this out of hardcoding)
-	std::array<float, 2> modCubes_lw = { 0.2f , 0.5f };
-
-	for (int i = 0; i < ARRAYSIZE(modCubes); i++) {
-		if (modCubes[i].checkPointCollision(point, modCubes_lw[i]) == true) {
-			return true;
-		}
-	}
-	return false;
-}
-
-//call when player is no longer jumping (on ground level).
-void CGame::StopPlayerJump() {
-	playerJumping = false;
-	currFallVelocity = 0;
-	ws_jump[0] = false;
-	ws_jump[1] = false;
-	stationary_jump = false;
-}
-
-void CGame::FireArrow() {
-	if (arrowFired == false) {
-		arrowFired = true;
-
-		//Update position of arrow to be where player is.
-		XMFLOAT4 CamPosition;
-		XMStoreFloat4(&CamPosition, Cam.GetCameraPosition());
-		arrow.SetPosition(CamPosition.x,CamPosition.y-0.3f, CamPosition.z);
-
-		//Rotate arrow based on look angle (should be pointed in camera view direction)
-		arrowDirection = -lookAngle; //negative because rotate angle increases clockwise (and camera anti-clockwise)
-		arrow.AdjustRotation(0.0f, arrowDirection, 0.0f); 
-		arrow.SetScale(0.2f, 0.2f, 0.2f);
-		
-	}
 }

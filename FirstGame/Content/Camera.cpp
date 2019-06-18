@@ -41,7 +41,7 @@ void Camera::TiltCameraY(bool up) {
 
 //Move Camera position by float m in the direction lookAngle
 void Camera::AdjustCameraPosition(float m, float lookAngle) {
-	
+
 	//define new x and z floats
 	float new_x;
 	float new_z;
@@ -54,17 +54,13 @@ void Camera::AdjustCameraPosition(float m, float lookAngle) {
 	}
 	else {
 		//move cam position in opposite direction to way we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle-3.141592f);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle-3.141592f);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngle - 3.141592f);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngle - 3.141592f);
 	}
 
 	//update cam position with new x and z coords
 	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_x, 0);
 	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_z, 2);
-
-	//update looking direction
-	UpdateCameraLookAtXZ(lookAngle);
-	
 }
 
 // Move Y coordinate of camera position by the amount 'adjustment' (float)

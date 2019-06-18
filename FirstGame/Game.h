@@ -19,11 +19,13 @@ public:
 	void Initialize();
 	void InitGraphics();
 	void InitPipeline();
-	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys, bool spacePress);
+	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys);
 	void Render();
 
 	//Functions Called From App Class
 	void FireArrow();
+	void PlayerJump(std::array<bool, 4> wasd_keys);
+	void StopPlayerJump();
 
 private:
 	ComPtr<ID3D11Device> dev;                      // the device interface
@@ -52,6 +54,7 @@ private:
 	float currFallVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
 	float gravity = 0.005f;			//gravity acting to reduce jump velocity
 	bool playerJumping = false;
+	float jumpAngle;
 
 	Camera Cam;
 	Cube modCubes[2];
@@ -75,10 +78,7 @@ private:
 	void UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys);
 	bool CheckObjPointCollision(XMVECTOR point);
 
-	void StopPlayerJump();
-
 	std::array<bool, 2> ws_jump = { false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
-	
 	bool stationary_jump = false; //will become true if player jumps while neither w or s keys are pressed.
 	bool arrowFired = false; //false if arrow not fired
 	float arrowDirection; //hold direction arrow is fired. 

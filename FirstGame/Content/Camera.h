@@ -10,6 +10,7 @@ public:
 	//void MoveCamera(std::array<bool, 4> wasd);
 	XMMATRIX GetCameraView();
 	XMVECTOR GetCameraPosition();
+	
 	void UpdateCameraLookAtXZ(float lookAngle);
 	void TiltCameraY(bool up);
 	void AdjustCameraPosition(float m, float lookAngle);
