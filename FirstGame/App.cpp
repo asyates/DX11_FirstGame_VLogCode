@@ -60,9 +60,6 @@ void App::Run() {
 		// Run ProcessEvents() to dispatch events
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-		Game.Update(wasd_keys);
-		Game.Render();
-
 		// calculate difference between last Pointer position and new position. Speed divider reduces this to a reasonable value in radians.
 		float deltaX = (lastPointerX - Window->PointerPosition.X) / lookSpeedDivider;
 		float deltaY = (lastPointerY - Window->PointerPosition.Y) / lookSpeedDivider;
@@ -77,6 +74,10 @@ void App::Run() {
 		if (spacePress == true) {
 			Game.PlayerJump(wasd_keys);
 		}
+
+		Game.Update(wasd_keys);
+		Game.Render();
+
 	}
 }
 
