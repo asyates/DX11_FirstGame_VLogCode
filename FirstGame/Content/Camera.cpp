@@ -21,26 +21,8 @@ void Camera::UpdateCameraLookAtXZ(float lookAngleXZ) {
 	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_z, 2);
 }
 
-
-//adjust camera look at vector in Y plane, taking boolean value to indicate if moving up or down.
-void Camera::TiltCameraY(bool up) {
-
-	//calculate new y coordinate
-	float new_y;
-	if (up == true) {
-		new_y = XMVectorGetByIndex(vecCamLookAt, 1) + yaxisRate;
-	}
-	else {
-		new_y = XMVectorGetByIndex(vecCamLookAt, 1) - yaxisRate;
-	};
-
-	//set new y coordinate
-	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_y, 1);
-
-}
-
 //Move Camera position by float m in the direction lookAngleXZ
-void Camera::AdjustCameraPosition(float m, float lookAngleXZ) {
+void Camera::MoveCameraForwardBack(float m, float lookAngleXZ) {
 
 	//define new x and z floats
 	float new_x;
@@ -54,8 +36,32 @@ void Camera::AdjustCameraPosition(float m, float lookAngleXZ) {
 	}
 	else {
 		//move cam position in opposite direction to way we are looking
-		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ - 3.141592f);
-		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ - 3.141592f);
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ - pi);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ - pi);
+	}
+
+	//update cam position with new x and z coords
+	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_x, 0);
+	vecCamPosition = XMVectorSetByIndex(vecCamPosition, new_z, 2);
+}
+
+//Move Camera position by float m in sideways direction to lookAngleXZ
+void Camera::MoveCameraSideToSide(float m, float lookAngleXZ) {
+
+	//define new x and z floats
+	float new_x;
+	float new_z;
+
+	//check whether we are moving forwards and backwards
+	if (m > 0) {
+		//move cam position right of where we are looking
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ - pi/2);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ - pi/2);
+	}
+	else {
+		//move cam position left of where we we are looking
+		new_x = XMVectorGetByIndex(vecCamPosition, 0) + abs(m) * cos(lookAngleXZ + pi/2);
+		new_z = XMVectorGetByIndex(vecCamPosition, 2) + abs(m) * sin(lookAngleXZ + pi/2);
 	}
 
 	//update cam position with new x and z coords
@@ -71,6 +77,20 @@ void Camera::AdjustCameraPositionY(float adjustment) {
 	
 	float new_yLook = XMVectorGetByIndex(vecCamLookAt, 1) + adjustment;
 	vecCamLookAt = XMVectorSetByIndex(vecCamLookAt, new_yLook, 1);
+}
+
+void Camera::UpdateCameraLookAtY(float lookAngleXZ, float lookAngleY) {
+	
+	float new_x;
+	float new_y;
+	float new_z;
+
+	//move cam look direction based on lookAngleY
+	new_x = XMVectorGetByIndex(vecCamPosition, 0) + sin(pi / 2 - lookAngleY)*cos(lookAngleXZ);
+	new_y = XMVectorGetByIndex(vecCamPosition, 1) + cos(pi/2- lookAngleY);
+	new_z = XMVectorGetByIndex(vecCamPosition, 2) + sin(pi / 2 - lookAngleY)*sin(lookAngleXZ);
+
+	vecCamLookAt = XMVectorSet(new_x, new_y, new_z, 0.0f);
 }
 
 XMMATRIX Camera::GetCameraView() {

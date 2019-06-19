@@ -95,16 +95,16 @@
     <Image Include="Images\avatar.png">
       <Filter>Images</Filter>
     </Image>
-    <Image Include="Images\ground.png">
-      <Filter>Images</Filter>
-    </Image>
     <Image Include="Images\fence.png">
       <Filter>Images</Filter>
     </Image>
-    <Image Include="Images\Finn.png">
+    <Image Include="Images\arrowTexture.png">
       <Filter>Images</Filter>
     </Image>
-    <Image Include="Images\arrowTexture.png">
+    <Image Include="Images\ground1.png">
+      <Filter>Images</Filter>
+    </Image>
+    <Image Include="Images\tortoise.png">
       <Filter>Images</Filter>
     </Image>
   </ItemGroup>
@@ -124,9 +124,6 @@
       <Filter>Models</Filter>
     </Text>
     <Text Include="Models\tortoise.obj">
-      <Filter>Models</Filter>
-    </Text>
-    <Text Include="Models\Finn.obj">
       <Filter>Models</Filter>
     </Text>
     <Text Include="Models\arrow.obj">

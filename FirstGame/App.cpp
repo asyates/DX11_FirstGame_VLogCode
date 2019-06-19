@@ -32,6 +32,12 @@ void App::SetWindow(CoreWindow^ Window) {
 
 	//Event handler for mouse actions
 	Window->PointerPressed += ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::PointerPressed);
+	Window->PointerMoved += ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::PointerMoved);	
+
+	//Set initial pointer position
+	startPointerX = Window->PointerPosition.X;
+	startPointerY = Window->PointerPosition.Y;
+	
 }
 
 void App::Load(String^ EntryPoint) {}
@@ -40,9 +46,23 @@ void App::Run() {
 	
 	//Initialise directx
 	Game.Initialize();
+
+	//set initial camera look angles
+	//Game.UpdateLookAngleXZ(lookAngleXZ);
+	//Game.UpdateLookAngleY(lookAngleY);
 	
 	// Obtain a pointer to the window
 	CoreWindow^ Window = CoreWindow::GetForCurrentThread();
+
+	//Define pointer start position
+	startPointerX = (Window->Bounds.Width) / 2;
+	startPointerY = (Window->Bounds.Height) / 2;
+
+
+	currPointerX = Window->PointerPosition.X;
+	currPointerY = Window->PointerPosition.Y;
+	lastPointerX = Window->PointerPosition.X;
+	lastPointerY = Window->PointerPosition.Y;
 
 	// repeat until window closes
 	while (!WindowClosed) {
@@ -50,12 +70,26 @@ void App::Run() {
 		// Run ProcessEvents() to dispatch events
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
-		Game.Update(wasd_keys, direction_keys, gh_keys);
+		Game.Update(wasd_keys);
+
+		float xChange = (lastPointerX - currPointerX) / speedDivX;
+		float yChange = (lastPointerY - currPointerY) / speedDivY;
+
+		Game.AdjustLookAngleXZ(xChange);
+		Game.AdjustLookAngleY(yChange);
+
+
+		Window->PointerPosition = Point(startPointerX, startPointerY);
+		lastPointerX = Window->PointerPosition.X;
+		lastPointerY = Window->PointerPosition.Y;
+		currPointerX = Window->PointerPosition.X;
+		currPointerY = Window->PointerPosition.Y;
+		
 
 		if (spacePress == true) {
 			Game.PlayerJump(wasd_keys);
 		}
-
+	
 		Game.Render();
 
 	}
@@ -88,6 +122,13 @@ void App::PointerPressed(CoreWindow^ sender, PointerEventArgs^ args) {
 	Game.FireArrow();
 }
 
+void App::PointerMoved(CoreWindow^ sender, PointerEventArgs^ args) {
+
+	currPointerX = sender->PointerPosition.X;
+	currPointerY = sender->PointerPosition.Y;
+
+}
+
 void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 
 	//check which key is pressed down
@@ -106,25 +147,14 @@ void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
 		wasd_keys[3] = true;
 	}
 	
-	//G and H key down
-	if (args->VirtualKey == VirtualKey::G) {
-		gh_keys[0] = true;
-	}
-	if (args->VirtualKey == VirtualKey::H) {
-		gh_keys[1] = true;
-	}
-
-	//up, down keys
-	if (args->VirtualKey == VirtualKey::Up) {
-		direction_keys[1] = true;
-	}
-	if (args->VirtualKey == VirtualKey::Down) {
-		direction_keys[3] = true;
-	}
-
 	//space key
 	if (args->VirtualKey == VirtualKey::Space) {
 		spacePress = true;
+	}
+
+	//if escape key, close
+	if (args->VirtualKey == VirtualKey::Escape) {
+		CoreApplication::Exit();
 	}
 }
 
@@ -141,22 +171,6 @@ void App::KeyUp(CoreWindow^ sender, KeyEventArgs^ args) {
 	}
 	if (args->VirtualKey == VirtualKey::D) {
 		wasd_keys[3] = false;
-	}
-
-	//G and H key down
-	if (args->VirtualKey == VirtualKey::G) {
-		gh_keys[0] = false;
-	}
-	if (args->VirtualKey == VirtualKey::H) {
-		gh_keys[1] = false;
-	}
-
-	//up, down keys
-	if (args->VirtualKey == VirtualKey::Up) {
-		direction_keys[1] = false;
-	}
-	if (args->VirtualKey == VirtualKey::Down) {
-		direction_keys[3] = false;
 	}
 
 	if (args->VirtualKey == VirtualKey::Space) {

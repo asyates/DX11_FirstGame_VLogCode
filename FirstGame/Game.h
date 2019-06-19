@@ -19,13 +19,15 @@ public:
 	void Initialize();
 	void InitGraphics();
 	void InitPipeline();
-	void Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys);
+	void Update(std::array<bool, 4> wasd_keys);
 	void Render();
 
 	//Functions Called From App Class
 	void FireArrow();
 	void PlayerJump(std::array<bool, 4> wasd_keys);
 	void StopPlayerJump();
+	void AdjustLookAngleXZ(float x); //adjust lookangle by x (do not reassign)
+	void AdjustLookAngleY(float x); //adjust lookangle by x (do not reassign)
 
 private:
 	ComPtr<ID3D11Device> dev;                      // the device interface
@@ -44,21 +46,24 @@ private:
 	ComPtr<ID3D11ShaderResourceView> texture1;		// avatar texture
 
 private:
-	float Time;
-	float scaleFact; //for scaling model (demo purposes, possibly delete!)
-	float modelScale;
-	float lookAngleXZ; //angle camera is looking
-	float pMoveSpeed = 0.1f;
 	float pi = 3.14f;
+	
+	float Time;
+
+	float lookAngleXZ; //angle camera is looking in XZ plane
+	float lookAngleY; // angle camera is looking in Y plane
+	float pMoveSpeedXZ = 0.1f; //XZ plane
 	float initJumpVelocity = 0.15f; //initial jump velocity
 	float currFallVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
 	float gravity = 0.005f;			//gravity acting to reduce jump velocity
 	bool playerJumping = false;
 	float jumpAngle;
 
+	float arrowSpeed = 0.2f;
+
 	Camera Cam;
 	Cube modCubes[2];
-	MeshGeometry filemesh[2];
+	MeshGeometry tortoise;
 	MeshGeometry arrow; //define arrow
 	GridFloor gFloor;
 
@@ -69,12 +74,14 @@ private:
 
 private:
 	void DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffset);
-	void DrawGrid(XMMATRIX matView, XMMATRIX matProjection);
+	void DrawFloor(XMMATRIX matView, XMMATRIX matProjection);
+	void DrawTortoise(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffset);
+	void DrawArrow(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffset);
 
-	void UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys);
+	void UpdateGameCamera(std::array<bool, 4> wasd_keys);
 	bool CheckObjPointCollision(XMVECTOR point);
 
-	std::array<bool, 2> ws_jump = { false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
+	std::array<bool, 4> wasd_jump = { false, false, false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
 	bool stationary_jump = false; //will become true if player jumps while neither w or s keys are pressed.
 	bool arrowFired = false; //false if arrow not fired
 	float arrowDirection; //hold direction arrow is fired. 

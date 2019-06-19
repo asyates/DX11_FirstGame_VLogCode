@@ -152,41 +152,29 @@ void CGame::Initialize()
 
 	//Initialise time and model_scale variable
 	Time = 0.0f;
-	scaleFact = 1.0f;
-	modelScale = 1.0f;
-	lookAngleXZ = pi/2;
+	lookAngleXZ = pi / 2;
 	Cam.UpdateCameraLookAtXZ(lookAngleXZ);
 
 }
 
 // this function performs updates to the state of the game
-void CGame::Update(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys, std::array<bool, 2> gh_keys) {
+void CGame::Update(std::array<bool, 4> wasd_keys) {
 
 	//Update camera position based on wasd keypress and jump
-	UpdateGameCamera(wasd_keys, direction_keys);
+	UpdateGameCamera(wasd_keys);
 	
 	Time += 0.03f;
-
-	//TO DELETE?? (DEMO CODE ONLY)
-	if (gh_keys[0] == true) {
-		scaleFact += 0.05f;
-		modCubes[1].SetScale(scaleFact, scaleFact, scaleFact);
-	}
-
-	if (gh_keys[1] == true) {
-		scaleFact -= 0.05f;
-		modCubes[1].SetScale(scaleFact, scaleFact, scaleFact);
-	}
 
 	if (arrowFired == true) {
 		//move cam position in positive direction we are looking
 		XMVECTOR arrowPosition = arrow.GetPosition();
 
-		float new_x= XMVectorGetByIndex(arrowPosition, 0) + abs(0.03f) * cos(-arrowDirection);
-		float new_z = XMVectorGetByIndex(arrowPosition, 2) + abs(0.03f) * sin(-arrowDirection);
+		float new_x= XMVectorGetByIndex(arrowPosition, 0) + abs(arrowSpeed) * cos(-arrowDirection);
+		float new_z = XMVectorGetByIndex(arrowPosition, 2) + abs(arrowSpeed) * sin(-arrowDirection);
 
 		arrow.SetPosition(new_x, 0.5f, new_z);
 	}
+
 }
 
 // this function renders a single frame of 3D graphics
@@ -224,18 +212,20 @@ void CGame::Render() {
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
 	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
 	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
+	
+	//Draw map grid (before other objects to avoid blending with back buffer)
+	DrawFloor(matView, matProjection); //Might need to change order of shadow render at later stage.
 
 	// Draw arrow if fired
 	if (arrowFired == true) {
-		cbPerObject.matFinal = arrow.GetWorldMatrix() * matView * matProjection;
-		arrow.DrawObject(devcon, m_cbufferPerObj, cbPerObject);
+		DrawArrow(matView, matProjection, S, shadowOffsetY);
 	}
-
-	//Draw map grid
-	DrawGrid(matView, matProjection); //Might need to change order of shadow render at later stage.
 
 	//render cubes
 	DrawCubes(matView, matProjection, S, shadowOffsetY);
+
+	//render tortoise model
+	DrawTortoise(matView, matProjection, S, shadowOffsetY);
 
 	// switch the back buffer and the front buffer
 	swapchain->Present(1, 0);
@@ -265,37 +255,49 @@ void CGame::DrawCubes(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShad
 		//Draw Shadow
 		modCubes[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
 
-
-		//TEMPORARY LOCATION FOR LOADED IN MESH
-
-		cbPerObject.matFinal = filemesh[i].GetWorldMatrix() * matView * matProjection;
-		filemesh[i].DrawObject(devcon, m_cbufferPerObj, cbPerObject);
-
-
-		//Calculate transformation matrix to tranform vertex onto shadow plane
-		matWorldShadow = filemesh[i].GetWorldMatrix() *matShadow * shadowOffsetY;
-
-		//Assign shadow transformation matrix to constant buffer
-		cbPerObject.matFinal = matWorldShadow * matView * matProjection;
-
-		//Draw Shadow
-		filemesh[i].DrawShadow(devcon, m_cbufferPerObj, cbPerObject);
-
 	}
 }
 
+void CGame::DrawArrow(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffsetY) {
+	//calculate final transformation matrix for object
+	cbPerObject.matFinal = arrow.GetWorldMatrix() * matView * matProjection;
+
+	arrow.DrawObject(devcon, m_cbufferPerObj, cbPerObject); 	//draw tortoise
+
+	//Calculate transformation matrix to tranform vertex onto shadow plane
+	XMMATRIX matWorldShadow = arrow.GetWorldMatrix() *matShadow * shadowOffsetY;
+	cbPerObject.matFinal = matWorldShadow * matView * matProjection; //Assign shadow transformation matrix to constant buffer
+
+	arrow.DrawShadow(devcon, m_cbufferPerObj, cbPerObject); 	//Draw Shadow
+}
+
+void CGame::DrawTortoise(XMMATRIX matView, XMMATRIX matProjection, XMMATRIX matShadow, XMMATRIX shadowOffsetY) {
+
+	//calculate final transformation matrix for object
+	cbPerObject.matFinal = tortoise.GetWorldMatrix() * matView * matProjection;
+
+	tortoise.DrawObject(devcon, m_cbufferPerObj, cbPerObject); 	//draw tortoise
+
+	//Calculate transformation matrix to tranform vertex onto shadow plane
+	XMMATRIX matWorldShadow = tortoise.GetWorldMatrix() *matShadow * shadowOffsetY;
+	cbPerObject.matFinal = matWorldShadow * matView * matProjection; //Assign shadow transformation matrix to constant buffer
+
+	tortoise.DrawShadow(devcon, m_cbufferPerObj, cbPerObject); 	//Draw Shadow
+
+}
+
 //draw grid floor
-void CGame::DrawGrid(XMMATRIX matView, XMMATRIX matProjection) {
+void CGame::DrawFloor(XMMATRIX matView, XMMATRIX matProjection) {
 		
 	//calculate final matrix and pass to cbuffer (Note: bug in visual studio currently presents performing this operation within gFloor object)
 	cbPerObject.matFinal = gFloor.GetWorldMatrix() * matView * matProjection;
-
 	gFloor.Draw(devcon, m_cbufferPerObj, cbPerObject);
 
 }
 
-void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> direction_keys) {
+void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
 	
+
 	//if player is jumping or above Y = 1.0f
 	if ((playerJumping == true) || (XMVectorGetByIndex(Cam.GetCameraPosition(), 1) > 1.0f)) {
 
@@ -315,78 +317,72 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys, std::array<bool, 4> 
 		}
 	} 
 
-
-	//if W pressed, or player has jumped while w is pressed, AND player is not mid-jump from a stationary position
-	if (((wasd_keys[0] == true) || (ws_jump[0] == true)) && ((stationary_jump == false) && ws_jump[1] == false)) {
-
-		float angle; //angle for player to move in
-
-		//check if jumping (angle of movement should not change if so)
-		if (ws_jump[0] == true) {
-			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
-		}
-		else {
-			angle = lookAngleXZ;
-		}
- 		
-		//move cam position by pMoveSpeed in direction lookAngleXZ
-		Cam.AdjustCameraPosition(pMoveSpeed, angle);
-		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
-
-		//Check for collision with objects
-		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
-			Cam.AdjustCameraPosition(-pMoveSpeed, angle);
-		}
-	};
-
-	if (wasd_keys[1] == true) {
-		//if A pressed, increase angle (goes counter-clockwise)
-		lookAngleXZ += 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
-	};
-
-	//if S pressed or player has jumped while s is pressed, AND player is not mid-jump from a stationary position
-	if (((wasd_keys[2] == true) || (ws_jump[1] == true)) && ((stationary_jump == false) && ws_jump[0] == false)) {
+	//for each key direction, perform checks to see if player needs to be moved, depending on whether player is allowed to move in that direction (not mid-Jump). 
+	//Also perform collision detection and update camera movements
+	for (size_t i = 0; i < wasd_keys.size(); i++) {
 		
-		float angle; //angle for player to move in
+		//check (1) if pressed while player is mid-jump, (2) if player is jumping in the given direction, (3) player has not jumped from stationary position
+		if ((((wasd_keys[i] == true) && (playerJumping == false)) || (wasd_jump[i] == true))) {
 
-	//check if jumping (angle of movement should not change if so)
-		if (ws_jump[1] == true) {
-			angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
+			float angle; //angle player will be moving
+
+			//if jumping in given direction, do not change direction based on lookAngleXZ (set to jumpAngle).
+			if (wasd_jump[i] == true) {
+				angle = jumpAngle; //if jumping assign angle to be the same as the angle at jump
+			}
+			else {
+				angle = lookAngleXZ; //new direction
+			}
+			
+			// [0] forward, [2] back
+			if ((i == 0) || (i == 2)) {
+
+				Cam.MoveCameraForwardBack((1-(int)i)*pMoveSpeedXZ, angle);  //move camera
+				
+				//check for collision
+				if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+					Cam.MoveCameraForwardBack(((int)i-1)*pMoveSpeedXZ, angle); //move back if collision with object
+				}		
+			}
+			// [1] left, [3] right
+			else { 
+
+				Cam.MoveCameraSideToSide(((int)i-2)*pMoveSpeedXZ, angle);  //move camera
+
+				//check for collision
+				if (CheckObjPointCollision(Cam.GetCameraPosition())) {
+					Cam.MoveCameraSideToSide((2-(int)i)*pMoveSpeedXZ, angle); //move back if collision with object
+				}
+			}
+			
+			//Update camera look at vector following movement
+			Cam.UpdateCameraLookAtXZ(lookAngleXZ);
+			Cam.UpdateCameraLookAtY(lookAngleXZ, lookAngleY);
 		}
-		else {
-			angle = lookAngleXZ; 
-		}
+	}
 
-		//move cam position by pMoveSpeed in reverse of direction lookAngleXZ
-		Cam.AdjustCameraPosition(-pMoveSpeed, angle);
-		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
+}
 
-		//Check for collision with objects (new function)?
-		bool collision = CheckObjPointCollision(Cam.GetCameraPosition());
+void CGame::AdjustLookAngleXZ(float x) {
+	lookAngleXZ += x;
+	Cam.UpdateCameraLookAtXZ(lookAngleXZ);
+	Cam.UpdateCameraLookAtY(lookAngleXZ, lookAngleY);
+}
 
-		//If collision = true, move object back using -pMoveSpeed
-		if (collision == true) {
-			Cam.AdjustCameraPosition(pMoveSpeed, angle);
-		}
-	};
+void CGame::AdjustLookAngleY(float x) {
 
-	if (wasd_keys[3] == true) {
-		//if D pressed, decrease angle
-		lookAngleXZ -= 0.05f;
-		Cam.UpdateCameraLookAtXZ(lookAngleXZ);
-	};
+	float angleOffset = 0.5f; //max angle camera can reach is angleOffset from the vertical e.g. if set to pi/4, range is -135 and 135.
+	lookAngleY += x;
 
-	if (direction_keys[1] == true) {
-		//if Up pressed, increase y coordinate of look direction
-		Cam.TiltCameraY(true);
-	};
+	//don't go outside of looking straight up or straight down
+	if (lookAngleY < (-pi / 2 + angleOffset)) { 
+		lookAngleY = -pi / 2 + angleOffset;
+	}
+	else if (lookAngleY > (pi / 2 - angleOffset)) {
+		lookAngleY = pi / 2 - angleOffset;
+	}
 
-	if (direction_keys[3] == true) {
-		//if Up pressed, increase y coordinate of look direction
-		Cam.TiltCameraY(false);
-	};
-
+	Cam.UpdateCameraLookAtY(lookAngleXZ, lookAngleY);
 }
 
 bool CGame::CheckObjPointCollision(XMVECTOR point) {
@@ -400,15 +396,6 @@ bool CGame::CheckObjPointCollision(XMVECTOR point) {
 		}
 	}
 	return false;
-}
-
-//call when player is no longer jumping (on ground level).
-void CGame::StopPlayerJump() {
-	playerJumping = false;
-	currFallVelocity = 0;
-	ws_jump[0] = false;
-	ws_jump[1] = false;
-	stationary_jump = false;
 }
 
 void CGame::FireArrow() {
@@ -437,16 +424,24 @@ void CGame::PlayerJump(std::array<bool, 4> wasd_keys) {
 		currFallVelocity = initJumpVelocity;
 
 		//if w or s keys pressed when player starts jump, set corresponding values in ws_key bool array to true.
-		if (wasd_keys[0] == true) {
-			ws_jump[0] = true;
-		}
-		else if (wasd_keys[2] == true) {
-			ws_jump[1] = true;
-		}
-		else {
-			stationary_jump = true;
+		for (size_t i=0; i < wasd_keys.size(); i++) {
+			if (wasd_keys[i] == true) {
+				wasd_jump[i] = true;
+			}
 		}
 	}
+}
+
+//call when player is no longer jumping (on ground level).
+void CGame::StopPlayerJump() {
+	playerJumping = false;
+	currFallVelocity = 0; //reset fall velocity
+	
+	//reset jump directions (false if not jumping)
+	for (size_t i = 0; i < wasd_jump.size(); i++) {
+			wasd_jump[i] = false;
+	}
+
 }
 
 // this function loads and initializes all graphics data
@@ -468,20 +463,16 @@ void CGame::InitGraphics()
 	modCubes[1].Initialize(dev);
 	modCubes[1].SetPosition(0.25f, 1.5f, 2.5f); //set initial position
 
-	//Initialise Grid
+	//Initialise Grid Floor
+	gFloor.SetTextureFile(L"Images/ground1.png");
 	gFloor.Initialize(dev);
-	gFloor.SetScale(6.0f, 0.0f, 6.0f);
+	gFloor.SetScale(80.0f, 0.0f, 30.0f);
 
-	//Initialise FileMesh
+	//Initialise Tortoise
 
-	filemesh[0].Initialize(dev, "Models/tortoise.obj");
-	filemesh[0].SetPosition(-10.0f, 2.5f, 0.0f);
-
-	filemesh[1].SetTextureFile(L"Images/Finn.png");
-	filemesh[1].Initialize(dev, "Models/Finn.obj");
-	filemesh[1].SetPosition(0.0f, 0.0f, 10.0f);
-	filemesh[1].SetScale(0.25f, 0.25f, 0.25f);
-
+	tortoise.SetTextureFile(L"Images/tortoise.png");
+	tortoise.Initialize(dev, "Models/tortoise.obj");
+	tortoise.SetPosition(-10.0f, 2.5f, 0.0f);
 }
 
 

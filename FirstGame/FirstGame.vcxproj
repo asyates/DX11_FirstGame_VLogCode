@@ -253,8 +253,8 @@
     <Image Include="Images\arrowTexture.png" />
     <Image Include="Images\avatar.png" />
     <Image Include="Images\fence.png" />
-    <Image Include="Images\Finn.png" />
-    <Image Include="Images\ground.png" />
+    <Image Include="Images\ground1.png" />
+    <Image Include="Images\tortoise.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.h" />
@@ -342,13 +342,6 @@
     </Text>
     <Text Include="Models\untitled.obj">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <FileType>Document</FileType>
-    </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="Models\Finn.obj">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <DeploymentContent>true</DeploymentContent>
       <FileType>Document</FileType>
     </Text>
   </ItemGroup>
