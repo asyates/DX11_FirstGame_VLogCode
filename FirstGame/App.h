@@ -36,7 +36,7 @@ public:
 
 	//Pointer Events
 	void PointerPressed(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
-	void PointerMoved(Windows::UI::Core::CoreWindow^ sender, Windows::UI::Core::PointerEventArgs^ args);
+	void ResetPointerPosition(Windows::UI::Core::CoreWindow^ Window);
 
 	//Other Event Handlers
 	void Closed(CoreWindow^ sender, CoreWindowEventArgs^ args);
@@ -44,27 +44,17 @@ public:
 private:
 
 	bool WindowClosed;    // change to true to close the window
+	bool gameStarted = false; 
+
 	CGame Game;
 
 	std::array<bool, 4> wasd_keys = { false,false,false,false }; //array for storing whether keys w,a,s,d are pressed down
 	bool spacePress = false;
 
-	float pi = 3.14f;
-	float startPointerX; //store last X coordinate of pointer before movement
-	float startPointerY; // store last Y coordinate of pointer before movement
-	float currPointerX;
-	float currPointerY;
-	float lastPointerX; //store last X coordinate of pointer before movement
-	float lastPointerY; // store last Y coordinate of pointer before movement
-	float lookAngleXZ = pi/2; // store look angle in XZ plane
-	float lookAngleY = 0.0f; //store look angle in Y direction
-	float speedDivX = 200.0f; //amount to divide change in X cursor coordinate by before updating lookAngleXZ
-	float speedDivY = 200.0f; //amount to divide change in Y cursor coordinate by before updating lookAngleY
+	float startPointerX, startPointerY; //start position of pointer
+	float lastPointerX, lastPointerY; //current position of pointer
+	float lookSpeedDivider = 150.0f; //increase to make looking around slower
 
-	DWORD moveStartTime;
-	DWORD moveStopDelay = 50; //0.05sec
-
-	bool mouseMoving = false;
 
 };
 

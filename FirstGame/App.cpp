@@ -32,11 +32,7 @@ void App::SetWindow(CoreWindow^ Window) {
 
 	//Event handler for mouse actions
 	Window->PointerPressed += ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::PointerPressed);
-	Window->PointerMoved += ref new TypedEventHandler<CoreWindow^, PointerEventArgs^>(this, &App::PointerMoved);	
 
-	//Set initial pointer position
-	startPointerX = Window->PointerPosition.X;
-	startPointerY = Window->PointerPosition.Y;
 	
 }
 
@@ -54,15 +50,9 @@ void App::Run() {
 	// Obtain a pointer to the window
 	CoreWindow^ Window = CoreWindow::GetForCurrentThread();
 
-	//Define pointer start position
-	startPointerX = (Window->Bounds.Width) / 2;
-	startPointerY = (Window->Bounds.Height) / 2;
-
-
-	currPointerX = Window->PointerPosition.X;
-	currPointerY = Window->PointerPosition.Y;
-	lastPointerX = Window->PointerPosition.X;
-	lastPointerY = Window->PointerPosition.Y;
+	startPointerX = (Window->Bounds.Width) / 2; //set start position of mouse (x)
+	startPointerY = (Window->Bounds.Height) / 2; // set start position of mouse (y)
+	ResetPointerPosition(Window);
 
 	// repeat until window closes
 	while (!WindowClosed) {
@@ -71,27 +61,22 @@ void App::Run() {
 		Window->Dispatcher->ProcessEvents(CoreProcessEventsOption::ProcessAllIfPresent);
 
 		Game.Update(wasd_keys);
+		Game.Render();
 
-		float xChange = (lastPointerX - currPointerX) / speedDivX;
-		float yChange = (lastPointerY - currPointerY) / speedDivY;
+		// calculate difference between last Pointer position and new position. Speed divider reduces this to a reasonable value in radians.
+		float deltaX = (lastPointerX - Window->PointerPosition.X) / lookSpeedDivider;
+		float deltaY = (lastPointerY - Window->PointerPosition.Y) / lookSpeedDivider;
 
-		Game.AdjustLookAngleXZ(xChange);
-		Game.AdjustLookAngleY(yChange);
-
-
-		Window->PointerPosition = Point(startPointerX, startPointerY);
-		lastPointerX = Window->PointerPosition.X;
-		lastPointerY = Window->PointerPosition.Y;
-		currPointerX = Window->PointerPosition.X;
-		currPointerY = Window->PointerPosition.Y;
+		//Update camera look angles based on mouse movement
+		Game.AdjustLookAngleXZ(deltaX); 
+		Game.AdjustLookAngleY(deltaY);
 		
+		ResetPointerPosition(Window);
 
+		//if space is pressed, make player jump
 		if (spacePress == true) {
 			Game.PlayerJump(wasd_keys);
 		}
-	
-		Game.Render();
-
 	}
 }
 
@@ -122,11 +107,11 @@ void App::PointerPressed(CoreWindow^ sender, PointerEventArgs^ args) {
 	Game.FireArrow();
 }
 
-void App::PointerMoved(CoreWindow^ sender, PointerEventArgs^ args) {
+void App::ResetPointerPosition(CoreWindow^ Window) {
 
-	currPointerX = sender->PointerPosition.X;
-	currPointerY = sender->PointerPosition.Y;
-
+	Window->PointerPosition = Point(startPointerX, startPointerY); //reset pointer position
+	lastPointerX = Window->PointerPosition.X; //for some reason, returns different value to startPointerX, so cannot simply set as startPointerX.
+	lastPointerY = Window->PointerPosition.Y;
 }
 
 void App::KeyDown(CoreWindow^ sender, KeyEventArgs^ args) {
