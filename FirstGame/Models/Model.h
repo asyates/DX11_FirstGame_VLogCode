@@ -33,6 +33,7 @@ public:
 
 	//Methods for getting position, rotation, scale
 	XMVECTOR GetPosition();
+	XMVECTOR GetRotation();
 
 	void UpdateWorldMatrix();
 	XMMATRIX GetWorldMatrix();

@@ -103,7 +103,7 @@ OBJINFO MeshGeometry::ReadObjFileVertices(std::string filename) {
 					normals.push_back(XMFLOAT3(nx, ny, nz));
 				}
 				else if (checkChar == 't') {
-					float u, v, w;
+					float u, v;
 					inFile >> u >> v;
 
 					texcoords.push_back(XMFLOAT2(u, 1-v)); //currently not using w

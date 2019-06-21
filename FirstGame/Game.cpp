@@ -169,10 +169,24 @@ void CGame::Update(std::array<bool, 4> wasd_keys) {
 		//move cam position in positive direction we are looking
 		XMVECTOR arrowPosition = arrow.GetPosition();
 
-		float new_x= XMVectorGetByIndex(arrowPosition, 0) + abs(arrowSpeed) * cos(-arrowDirection);
-		float new_z = XMVectorGetByIndex(arrowPosition, 2) + abs(arrowSpeed) * sin(-arrowDirection);
+		float new_x = XMVectorGetByIndex(arrowPosition, 0) + abs(arrowSpeedX) * cos(-arrowDirection);
+		float new_y = XMVectorGetByIndex(arrowPosition, 1) + arrowSpeedY;
+		float new_z = XMVectorGetByIndex(arrowPosition, 2) + abs(arrowSpeedX) * sin(-arrowDirection);
 
-		arrow.SetPosition(new_x, 0.5f, new_z);
+		arrowAngle = atan(arrowSpeedY / arrowSpeedX);
+
+		arrow.SetPosition(new_x, new_y, new_z);
+
+		arrow.SetRotation(0.0f, 0.0f, (pi / 2) - arrowAngle); //initial pi/2 brings it down onto x-z plane
+		arrow.AdjustRotation(0.0f, pi+arrowDirection, 0.0f); //initial pi brings it in line with x axis (same as camera zero angle position)
+
+		arrowSpeedY -= gravity;
+
+		//check if below ground. If true, arrow is no longer rendered
+		if (new_y <= 0.0f) {
+			arrowFired = false;
+		}
+
 	}
 
 }
@@ -211,7 +225,7 @@ void CGame::Render() {
 	//Set up shadow matrix
 	XMVECTOR shadowPlane = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); //define in xz plane
 	XMMATRIX S = XMMatrixShadow(shadowPlane, -cbPerFrame.DiffuseVector);
-	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.001f, 0.0f);
+	XMMATRIX shadowOffsetY = XMMatrixTranslation(0.0f, 0.01f, 0.0f);
 	
 	//Draw map grid (before other objects to avoid blending with back buffer)
 	DrawFloor(matView, matProjection); //Might need to change order of shadow render at later stage.
@@ -307,8 +321,10 @@ void CGame::UpdateGameCamera(std::array<bool, 4> wasd_keys) {
 		if (CheckObjPointCollision(Cam.GetCameraPosition())) {
 			Cam.AdjustCameraPositionY(-currFallVelocity);
 			StopPlayerJump();
+			playerFalling = false;
 		}
 		else {
+			playerFalling = true;
 			currFallVelocity = currFallVelocity - gravity; //reduce jump velocity by a small amount each time (gravity), such that it becomes negative and player eventually falls.
 		}
 
@@ -371,7 +387,7 @@ void CGame::AdjustLookAngleXZ(float x) {
 
 void CGame::AdjustLookAngleY(float x) {
 
-	float angleOffset = 0.5f; //max angle camera can reach is angleOffset from the vertical e.g. if set to pi/4, range is -135 and 135.
+	float angleOffset = 0.8f; //max angle camera can reach is angleOffset from the vertical e.g. if set to pi/4, range is -135 and 135.
 	lookAngleY += x;
 
 	//don't go outside of looking straight up or straight down
@@ -405,21 +421,25 @@ void CGame::FireArrow() {
 		//Update position of arrow to be where player is.
 		XMFLOAT4 CamPosition;
 		XMStoreFloat4(&CamPosition, Cam.GetCameraPosition());
-		arrow.SetPosition(CamPosition.x,CamPosition.y-0.3f, CamPosition.z);
+		arrow.SetPosition(CamPosition.x,CamPosition.y, CamPosition.z);
 
 		//Rotate arrow based on look angle (should be pointed in camera view direction)
 		arrowDirection = -lookAngleXZ; //negative because rotate angle increases clockwise (and camera anti-clockwise)
-		arrow.AdjustRotation(0.0f, arrowDirection, 0.0f); 
-		arrow.SetScale(0.2f, 0.2f, 0.2f);
-		
+		arrowAngle = lookAngleY;
+		arrowSpeed = initArrowSpeed;
+		arrowSpeedX = initArrowSpeed * cos(arrowAngle);
+		arrowSpeedY = initArrowSpeed * sin(arrowAngle);
+		initArrowSpeedY = arrowSpeedY;
+
 	}
 }
 
 void CGame::PlayerJump(std::array<bool, 4> wasd_keys) {
 	
 	//if space has been pressed, and player not already jumping, set playing jumping to true.
-	if (playerJumping == false) {
+	if ((playerJumping == false) && (playerFalling == false)) {
 		playerJumping = true;
+		playerFalling = true;
 		jumpAngle = lookAngleXZ;
 		currFallVelocity = initJumpVelocity;
 
@@ -435,8 +455,8 @@ void CGame::PlayerJump(std::array<bool, 4> wasd_keys) {
 //call when player is no longer jumping (on ground level).
 void CGame::StopPlayerJump() {
 	playerJumping = false;
+	playerFalling = false;
 	currFallVelocity = 0; //reset fall velocity
-	
 	//reset jump directions (false if not jumping)
 	for (size_t i = 0; i < wasd_jump.size(); i++) {
 			wasd_jump[i] = false;
@@ -451,17 +471,16 @@ void CGame::InitGraphics()
 	//Initialise Arrow
 	arrow.SetTextureFile(L"Images/arrowTexture.png");
 	arrow.Initialize(dev, "Models/arrow.obj");
-	arrow.SetRotation(0.0f, 0.0f, pi / 2); //bring parallel with x-z place
-	arrow.AdjustRotation(0.0f, pi, 0.0f); //re-direct so it is pointing at zero degree lookAngleXZ.
+	arrow.SetScale(0.3f, 0.3f, 0.3f);
 
 	//Initialise cubes
 	modCubes[0].SetTextureFile(L"Images/fence.png"); //set new texture file (so it's not default). Currently needs to be set before calling Initialize().
 	modCubes[0].Initialize(dev);
-	modCubes[0].SetPosition(4.0f, 2.0f, -3.0f); //set initial position
+	modCubes[0].SetPosition(3.8f, 2.0f, -2.8f); //set initial position
 	modCubes[0].SetScale(0.2f, 2.0f, 0.2f); //set initial scale
 
 	modCubes[1].Initialize(dev);
-	modCubes[1].SetPosition(0.25f, 1.5f, 2.5f); //set initial position
+	modCubes[1].SetPosition(0.25f, 1.4f, 2.5f); //set initial position
 
 	//Initialise Grid Floor
 	gFloor.SetTextureFile(L"Images/ground1.png");

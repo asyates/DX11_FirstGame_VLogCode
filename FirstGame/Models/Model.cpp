@@ -247,6 +247,8 @@ void Model::AdjustRotation(float x, float y, float z) {
 	//Don't reset matRotate for adjusting rotation
 	matRotate = matRotate * matRotateX * matRotateY * matRotateZ;
 
+	//update world matrix
+	UpdateWorldMatrix();
 }
 
 void Model::SetScale(float x, float y, float z) {
@@ -275,4 +277,8 @@ XMMATRIX Model::GetRotationMatrix() {
 
 XMVECTOR Model::GetPosition() {
 	return position;
+}
+
+XMVECTOR Model::GetRotation() {
+	return rotation;
 }

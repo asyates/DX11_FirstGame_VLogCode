@@ -46,20 +46,19 @@ private:
 	ComPtr<ID3D11ShaderResourceView> texture1;		// avatar texture
 
 private:
-	float pi = 3.14f;
+	const float pi = 3.14f;
 	
 	float Time;
 
 	float lookAngleXZ; //angle camera is looking in XZ plane
 	float lookAngleY; // angle camera is looking in Y plane
 	float pMoveSpeedXZ = 0.1f; //XZ plane
-	float initJumpVelocity = 0.15f; //initial jump velocity
-	float currFallVelocity = 0.15f; //current jump velocity, will be adjusted while jumping
+	const float initJumpVelocity = 0.14f; //initial jump velocity
+	float currFallVelocity; //current jump velocity, will be adjusted while jumping
 	float gravity = 0.005f;			//gravity acting to reduce jump velocity
 	bool playerJumping = false;
+	bool playerFalling = false;
 	float jumpAngle;
-
-	float arrowSpeed = 0.2f;
 
 	Camera Cam;
 	Cube modCubes[2];
@@ -84,5 +83,12 @@ private:
 	std::array<bool, 4> wasd_jump = { false, false, false, false }; //check if keys w or s (forward/backward) are pressed down when jump occurred
 	bool stationary_jump = false; //will become true if player jumps while neither w or s keys are pressed.
 	bool arrowFired = false; //false if arrow not fired
-	float arrowDirection; //hold direction arrow is fired. 
+	float arrowDirection; //hold direction arrow is fired.
+	float arrowAngle; //arrow angle object is at (will change as it flies through air)
+	float initArrowSpeed = 1.2f;
+	float arrowSpeed;
+	float arrowSpeedX; // current arrow speed in X direction
+	float arrowSpeedY; // current arrow speed in Y direction (will be changed to reflect gravity)
+	float initArrowSpeedY; // 
+
 };
